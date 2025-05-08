@@ -35,35 +35,6 @@ const createOptions = (apiKeyPPLX, newMessage) => {
             return_citations: true,
             return_images: false,
             return_related_questions: false,
-
-            // web_search_options: { search_context_size: "medium" },
-
-            // response_format: {
-            //     type: "json_schema",
-            //     schema: {
-            //         type: "object",
-            //         properties: {
-            //             summary: { type: "string" },
-            //             strengths: { type: "array", items: { type: "string" } },
-            //             suggestions: {
-            //                 type: "array",
-            //                 items: { type: "string" },
-            //             },
-            //             score: { type: "number" },
-            //             categories: {
-            //                 type: "array",
-            //                 items: { type: "string" },
-            //             },
-            //         },
-            //         required: [
-            //             "summary",
-            //             "strengths",
-            //             "suggestions",
-            //             "score",
-            //             "categories",
-            //         ],
-            //     },
-            // },
         }),
     };
 };
