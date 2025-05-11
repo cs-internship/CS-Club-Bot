@@ -13,8 +13,6 @@ const allowedGroups = process.env.ALLOWED_GROUPS.split(",").map(Number);
 async function sendToPerplexity(input, apiKey) {
     try {
         const options = createOptions.createOptions(apiKey, input);
-        // console.log("Perplexity options:", options);
-
         const res = await fetch(
             "https://api.perplexity.ai/chat/completions",
             options
@@ -30,6 +28,7 @@ async function sendToPerplexity(input, apiKey) {
         return "❌ Error: Unable to get a response! Check Bot logs.";
     }
 }
+
 bot.on("message", async (ctx, next) => {
     const message = ctx.message;
     const text = message.text;
@@ -55,6 +54,8 @@ bot.on("message", async (ctx, next) => {
                 );
 
                 const response = await sendToPerplexity(text, apiKey);
+
+                // console.log("Response from Perplexity:", response);
 
                 await ctx.telegram.editMessageText(
                     message.chat.id,
