@@ -1,5 +1,8 @@
 require("dotenv").config();
 const { Telegraf } = require("telegraf");
+const { version } = require("./package.json");
+const { ERROR_RESPONSES } = require("./error-responses");
+
 const express = require("express");
 const fetch = require("node-fetch");
 const createOptions = require("./createOptions");
@@ -10,22 +13,54 @@ const PORT = process.env.PORT;
 const apiKey = process.env.PERPLEXITY_API_KEY;
 const allowedGroups = process.env.ALLOWED_GROUPS.split(",").map(Number);
 
-async function sendToPerplexity(input, apiKey) {
+async function sendToPerplexity(input) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+
     try {
-        const options = createOptions.createOptions(apiKey, input);
+        const options = {
+            ...createOptions.createOptions(apiKey, input),
+            signal: controller.signal,
+        };
+
         const res = await fetch(
             "https://api.perplexity.ai/chat/completions",
             options
         );
-        const resJson = await res.json();
 
+        if (!res.ok) {
+            const status = res.status;
+            const body = await res.text();
+
+            console.error("❌ Perplexity API Error", status, body);
+
+            switch (status) {
+                case 403:
+                    return ERROR_RESPONSES.FORBIDDEN.code;
+                case 429:
+                    return ERROR_RESPONSES.RATE_LIMIT.code;
+                case 500:
+                    return ERROR_RESPONSES.SERVER_ERROR.code;
+                default:
+                    return ERROR_RESPONSES.UNKNOWN.code;
+            }
+        }
+
+        const resJson = await res.json();
         let messageContent = resJson.choices[0].message.content;
         messageContent = messageContent.replace(/\[\d+\]/g, "");
 
         return messageContent;
     } catch (error) {
-        console.error("Perplexity error:", error);
-        return "❌ Error: Unable to get a response! Check Bot logs.";
+        if (error.name === "AbortError") {
+            console.error("❌ Request to Perplexity timed out.");
+            return ERROR_RESPONSES.TIMEOUT.code;
+        }
+
+        console.error("❌ Exception in sendToPerplexity:", error);
+        return ERROR_RESPONSES.EXCEPTION.code;
+    } finally {
+        clearTimeout(timeout);
     }
 }
 
@@ -35,15 +70,33 @@ bot.on("message", async (ctx, next) => {
     const chatType = ctx.chat.type;
     const chatId = ctx.chat.id;
 
-    const isCommand = message.entities?.some(
-        (entity) => entity.type === "bot_command"
-    );
+    const isExactCommand =
+        message.entities?.length === 1 &&
+        message.entities[0].type === "bot_command" &&
+        message.entities[0].offset === 0 &&
+        message.entities[0].length === text.length;
 
-    if (isCommand) {
+    if (isExactCommand) {
+        if (ctx.from?.username !== process.env.ADMIN_USERNAME) {
+            try {
+                await ctx.telegram.callApi("setMessageReaction", {
+                    chat_id: ctx.chat.id,
+                    message_id: message.message_id,
+                    reaction: [{ type: "emoji", emoji: "👀" }],
+                });
+            } catch (error) {
+                console.error("Reaction error:", error);
+            }
+            return;
+        }
         return next();
     }
 
     if (chatType !== "private" && allowedGroups.includes(chatId)) {
+        if (text && text.includes("#معرفی")) {
+            return;
+        }
+
         if (text && text.toLowerCase().includes("#cs_internship")) {
             try {
                 const processingMessage = await ctx.reply(
@@ -53,16 +106,27 @@ bot.on("message", async (ctx, next) => {
                     }
                 );
 
-                const response = await sendToPerplexity(text, apiKey);
+                const response = await sendToPerplexity(text);
 
-                // console.log("Response from Perplexity:", response);
-
-                await ctx.telegram.editMessageText(
-                    message.chat.id,
-                    processingMessage.message_id,
-                    undefined,
-                    response
+                const errorEntry = Object.values(ERROR_RESPONSES).find(
+                    (entry) => entry.code === response
                 );
+
+                if (errorEntry) {
+                    await ctx.telegram.editMessageText(
+                        message.chat.id,
+                        processingMessage.message_id,
+                        undefined,
+                        errorEntry.message
+                    );
+                } else {
+                    await ctx.telegram.editMessageText(
+                        message.chat.id,
+                        processingMessage.message_id,
+                        undefined,
+                        response
+                    );
+                }
             } catch (error) {
                 console.error("Error processing message:", error);
                 await ctx.reply("❌ مشکلی پیش اومد.");
@@ -83,7 +147,7 @@ bot.command("Version", (ctx) => {
     const chatType = ctx.chat.type;
 
     if (chatType !== "private" && allowedGroups.includes(chatId)) {
-        ctx.reply("🤖 Bot version: 1.0.0");
+        ctx.reply(`🤖 Bot version: ${version}`);
     }
 });
 
