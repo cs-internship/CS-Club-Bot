@@ -93,7 +93,10 @@ bot.on("message", async (ctx, next) => {
     }
 
     if (chatType !== "private" && allowedGroups.includes(chatId)) {
-        if (text && text.includes("#معرفی")) {
+        if (
+            (text && text.includes("#معرفی")) ||
+            (text && text.includes("#no_ai"))
+        ) {
             return;
         }
 
