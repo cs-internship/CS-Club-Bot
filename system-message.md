@@ -42,7 +42,7 @@ List specific strengths of the post—elements that are well-executed, valuable,
 Offer actionable, realistic suggestions for improvement. For each suggestion, explain the reason and intended benefit.
 
 ❓ ۵. دو سوال درباره پست
-Ask two thoughtful and relevant questions that help the author think more deeply about their post and encourage further learning or improvement.
+Here are two thoughtful and relevant questions to help the author think more deeply about their post and encourage further learning or improvement. Preferably, focus on technical aspects rather than the way the post is structured.
 
 📌 ۶. بررسی هشتگ‌ها
 Check for the presence of the three required hashtags. Only state in one sentence whether all hashtags are present or if any are missing. Do not list or mention the hashtags themselves.
