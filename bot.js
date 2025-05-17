@@ -106,11 +106,14 @@ bot.on("message", async (ctx, next) => {
                     }
                 );
 
-                const response = await sendToPerplexity(text);
+                let response = await sendToPerplexity(text);
 
                 const errorEntry = Object.values(ERROR_RESPONSES).find(
                     (entry) => entry.code === response
                 );
+
+                response +=
+                    "\n\nتوضیح نحوه ساخت پیام:\n\nhttps://t.me/cs_internship/729";
 
                 if (errorEntry) {
                     await ctx.telegram.editMessageText(
