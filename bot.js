@@ -15,7 +15,7 @@ const allowedGroups = process.env.ALLOWED_GROUPS.split(",").map(Number);
 
 async function sendToPerplexity(input) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000);
+    const timeout = setTimeout(() => controller.abort(), 90000);
 
     try {
         const options = {
