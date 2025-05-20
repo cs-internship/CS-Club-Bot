@@ -130,7 +130,10 @@ bot.on("message", async (ctx, next) => {
                         message.chat.id,
                         processingMessage.message_id,
                         undefined,
-                        response
+                        response,
+                        {
+                            disable_web_page_preview: true,
+                        }
                     );
                 }
             } catch (error) {
