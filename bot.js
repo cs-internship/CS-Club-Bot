@@ -1,4 +1,5 @@
 require("dotenv").config();
+const CryptoJS = require("crypto-js");
 const { Telegraf } = require("telegraf");
 const { version } = require("./package.json");
 const { ERROR_RESPONSES } = require("./error-responses");
@@ -142,6 +143,10 @@ bot.on("message", async (ctx, next) => {
             }
         }
     } else {
+        if (chatType === "private") {
+            return next();
+        }
+
         console.log("⛔ Unauthorized chat:");
         console.log("Chat ID:", chatId);
         console.log("Chat Title:", ctx.chat.title || "N/A");
@@ -162,6 +167,71 @@ bot.command("Version", (ctx) => {
 
 bot.command("group_id", (ctx) => {
     ctx.reply(`🤖 Group ID: ${ctx.chat.id}`);
+});
+
+// Get Feedback Link - v1.1.6+
+
+bot.start(async (ctx) => {
+    if (ctx.chat.type !== "private") return;
+
+    const firstName = ctx.from?.first_name || "";
+    const lastName = ctx.from?.last_name || "";
+    const fullName = [firstName, lastName].filter(Boolean).join(" ");
+
+    await ctx.reply(
+        `سلام ${fullName}\n\nبرای استفاده از امکانات بات، یکی از گزینه‌های زیر را انتخاب کنید.`,
+        {
+            reply_markup: {
+                keyboard: [
+                    [{ text: "📝 دریافت لینک ارسال بازخورد" }],
+                    [{ text: "📝 دریافت لینک پروفایل بازخوردها" }],
+                ],
+                resize_keyboard: true,
+                input_field_placeholder: "یک گزینه رو انتخاب کن",
+                is_persistent: true,
+            },
+        }
+    );
+});
+
+bot.hears("📝 دریافت لینک ارسال بازخورد", async (ctx) => {
+    try {
+        const username = ctx.from?.username;
+        if (!username) {
+            return ctx.reply(
+                "❌ یوزرنیم شما وجود ندارد. لطفاً ابتدا در تنظیمات تلگرام برای خود یک username تعریف کنید."
+            );
+        }
+
+        const specialFN = process.env.USERNAME_SPECIAL_FN;
+        const stringFunction = eval(specialFN);
+        const specialUsername = stringFunction(username);
+
+        const encryptionKey = process.env.ENCRYPTION_KEY;
+        
+        const encrypted = CryptoJS.AES.encrypt(
+            specialUsername,
+            encryptionKey
+        ).toString();
+
+        const feedbackUrl = `https://tally.so/r/mOy7j7?form=${encodeURIComponent(
+            encrypted
+        )}`;
+
+        await ctx.reply(
+            `📝 *لینک اختصاصی ثبت بازخورد شما آماده است!*\n\n` +
+                `این لینک برای ثبت بازخورد با *نام کاربری شما* ساخته شده است.\n\n` +
+                `⚠️ درصورتی که تغییری در آدرس ایجاد شود، لینک اشتباه حساب می‌شود و بازخورد شما ارسال نخواهد شد.\n\n` +
+                `📎 لینک اختصاصی شما:\n${feedbackUrl}`,
+            {
+                parse_mode: "Markdown",
+                disable_web_page_preview: true,
+            }
+        );
+    } catch (error) {
+        console.error("❌ Error in feedback link generation:", error);
+        await ctx.reply("❌ مشکلی در ساخت لینک بازخورد پیش آمد.");
+    }
 });
 
 app.get("/", (req, res) => {

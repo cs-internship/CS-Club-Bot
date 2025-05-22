@@ -1,7 +1,7 @@
 {
   "name": "cs-club-bot",
   "description": "CS-Club-Bot",
-  "version": "1.0.6",
+  "version": "1.1.6",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^1.9.0",
+    "crypto-js": "^4.2.0",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "telegraf": "^4.16.3"
