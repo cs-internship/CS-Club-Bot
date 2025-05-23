@@ -196,9 +196,14 @@ bot.hears("📝 دریافت لینک ارسال بازخورد", async (ctx) =>
             );
         }
 
+        const today = new Date();
+        const shortDate = today.toISOString().slice(2, 10).replace(/-/g, "");
+
+        const combined = `${username}:${shortDate}`;
+
         const specialFN = process.env.USERNAME_SPECIAL_FN;
         const stringFunction = eval(specialFN);
-        const specialUsername = stringFunction(username);
+        const specialUsername = stringFunction(combined);
 
         const encryptionKey = process.env.ENCRYPTION_KEY;
 
