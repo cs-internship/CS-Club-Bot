@@ -77,31 +77,31 @@ bot.on("message", async (ctx, next) => {
         message.entities[0].offset === 0 &&
         message.entities[0].length === text.length;
 
-    if (isExactCommand) {
-        if (ctx.from?.username !== process.env.ADMIN_USERNAME) {
+    if (
+        isExactCommand &&
+        chatType !== "private" &&
+        allowedGroups.includes(chatId)
+    ) {
+        if (ctx.from?.username !== adminUsername) {
             try {
                 await ctx.telegram.callApi("setMessageReaction", {
-                    chat_id: ctx.chat.id,
+                    chat_id: chatId,
                     message_id: message.message_id,
                     reaction: [{ type: "emoji", emoji: "👀" }],
                 });
             } catch (error) {
-                console.error("Reaction error:", error);
+                console.error("❌ Reaction error:", error);
             }
             return;
+        } else {
+            return next();
         }
-        return next();
     }
 
     if (chatType !== "private" && allowedGroups.includes(chatId)) {
-        if (
-            (text && text.includes("#معرفی")) ||
-            (text && text.includes("#no_ai"))
-        ) {
-            return;
-        }
+        if (text?.includes("#معرفی") || text?.includes("#no_ai")) return;
 
-        if (text && text.toLowerCase().includes("#cs_internship")) {
+        if (text?.toLowerCase().includes("#cs_internship")) {
             try {
                 const processingMessage = await ctx.reply(
                     "🕒 در حال پردازش...",
@@ -119,41 +119,34 @@ bot.on("message", async (ctx, next) => {
                 response +=
                     "\n\nتوضیح نحوه ساخت پیام:\n\nhttps://t.me/cs_internship/729";
 
-                if (errorEntry) {
-                    await ctx.telegram.editMessageText(
-                        message.chat.id,
-                        processingMessage.message_id,
-                        undefined,
-                        errorEntry.message
-                    );
-                } else {
-                    await ctx.telegram.editMessageText(
-                        message.chat.id,
-                        processingMessage.message_id,
-                        undefined,
-                        response,
-                        {
-                            disable_web_page_preview: true,
-                        }
-                    );
-                }
+                await ctx.telegram.editMessageText(
+                    chatId,
+                    processingMessage.message_id,
+                    undefined,
+                    errorEntry ? errorEntry.message : response,
+                    {
+                        disable_web_page_preview: true,
+                    }
+                );
             } catch (error) {
-                console.error("Error processing message:", error);
+                console.error("❌ Error processing message:", error);
                 await ctx.reply("❌ مشکلی پیش اومد.");
             }
         }
-    } else {
-        if (chatType === "private") {
-            return next();
-        }
 
-        console.log("⛔ Unauthorized chat:");
-        console.log("Chat ID:", chatId);
-        console.log("Chat Title:", ctx.chat.title || "N/A");
-        console.log("User ID:", ctx.from?.id);
-        console.log("Username:", ctx.from?.username || "N/A");
-        console.log("-------------------------");
+        return;
     }
+
+    if (chatType === "private") {
+        return next();
+    }
+
+    console.log("⛔ Unauthorized chat:");
+    console.log("Chat ID:", chatId);
+    console.log("Chat Title:", ctx.chat.title || "N/A");
+    console.log("User ID:", ctx.from?.id);
+    console.log("Username:", ctx.from?.username || "N/A");
+    console.log("-------------------------");
 });
 
 bot.command("Version", (ctx) => {
@@ -208,7 +201,7 @@ bot.hears("📝 دریافت لینک ارسال بازخورد", async (ctx) =>
         const specialUsername = stringFunction(username);
 
         const encryptionKey = process.env.ENCRYPTION_KEY;
-        
+
         const encrypted = CryptoJS.AES.encrypt(
             specialUsername,
             encryptionKey
