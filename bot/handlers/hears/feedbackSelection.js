@@ -2,8 +2,8 @@ const { Client } = require("@notionhq/client");
 const NOTION_API_KEY = new Client({ auth: process.env.NOTION_API_KEY });
 const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
 
-module.exports = {
-    async showFeedbackSelection(ctx) {
+module.exports = (bot) => {
+    bot.hears("📝 ارسال بازخورد جلسه فنی", async (ctx) => {
         try {
             const response = await NOTION_API_KEY.databases.query({
                 database_id: NOTION_DATABASE_ID,
@@ -31,19 +31,25 @@ module.exports = {
 
             keyboard.push([{ text: "🔙 بازگشت" }]);
 
-            await ctx.reply("👤 لطفاً یک همیار فنی را برای ارسال بازخورد انتخاب نمایید:", {
-                reply_markup: {
-                    keyboard,
-                    resize_keyboard: true,
-                    is_persistent: true,
-                    input_field_placeholder: "انتخاب همیار فنی",
-                },
-            });
+            ctx.session.availableUsers = users;
+            ctx.session.step = "awaiting_user_selection";
+
+            await ctx.reply(
+                "👤 لطفاً یک همیار فنی را برای ارسال بازخورد انتخاب نمایید:",
+                {
+                    reply_markup: {
+                        keyboard,
+                        resize_keyboard: true,
+                        is_persistent: true,
+                        input_field_placeholder: "انتخاب همیار فنی",
+                    },
+                }
+            );
         } catch (err) {
             console.error("❌ Error fetching users from Notion:", err);
             await ctx.reply(
                 "❌ مشکلی در دریافت اطلاعات کاربران پیش آمده است. لطفاً بعداً تلاش نمایید."
             );
         }
-    },
+    });
 };

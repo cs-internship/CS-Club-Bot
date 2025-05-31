@@ -11,9 +11,9 @@ module.exports = {
         };
     },
 
-    async showMainMenu(ctx, fullNameInput) {
+    async showMainMenu(ctx) {
         await ctx.reply(
-            `✅ اطلاعات شما با موفقیت ثبت شد ${fullNameInput}.\n\nلطفاً یکی از گزینه‌های زیر را انتخاب نمایید:`,
+            `لطفاً یکی از گزینه‌های زیر را انتخاب نمایید:`,
             {
                 reply_markup: this.getMainMenuKeyboard(),
             }

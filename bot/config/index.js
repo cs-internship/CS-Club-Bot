@@ -6,7 +6,10 @@ module.exports = {
     PERPLEXITY_API_KEY: process.env.PERPLEXITY_API_KEY,
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
     USERNAME_SPECIAL_FN: process.env.USERNAME_SPECIAL_FN,
-    ALLOWED_GROUPS: process.env.ALLOWED_GROUPS.split(",").map(Number),
+    ALLOWED_GROUPS: (process.env.ALLOWED_GROUPS || "")
+        .split(",")
+        .map(Number)
+        .filter(Boolean),
     ADMIN_USERNAME: process.env.ADMIN_USERNAME,
     FORM_BASE_URL: "https://tally.so/r/mOy7j7",
 };

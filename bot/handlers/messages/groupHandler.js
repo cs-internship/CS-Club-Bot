@@ -15,7 +15,11 @@ module.exports = (bot) => {
             message.entities[0].offset === 0 &&
             message.entities[0].length === text.length;
 
-        if (isExactCommand && chatType !== "private" && ALLOWED_GROUPS.includes(chatId)) {
+        if (
+            isExactCommand &&
+            chatType !== "private" &&
+            ALLOWED_GROUPS.includes(chatId)
+        ) {
             if (ctx.from?.username !== ADMIN_USERNAME) {
                 try {
                     await ctx.telegram.callApi("setMessageReaction", {
@@ -37,9 +41,12 @@ module.exports = (bot) => {
 
             if (text?.toLowerCase().includes("#cs_internship")) {
                 try {
-                    const processingMessage = await ctx.reply("🕒 در حال پردازش...", {
-                        reply_to_message_id: message.message_id,
-                    });
+                    const processingMessage = await ctx.reply(
+                        "🕒 در حال پردازش...",
+                        {
+                            reply_to_message_id: message.message_id,
+                        }
+                    );
 
                     let response = await sendToPerplexity(text);
 
