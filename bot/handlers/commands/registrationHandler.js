@@ -32,6 +32,8 @@ module.exports = (bot) => {
             date: new Date().toISOString(),
         };
 
+        ctx.reply("🔄 در حال ثبت اطلاعات شما...");
+
         try {
             await notion.pages.create({
                 parent: { database_id: NOTION_DATABASE_ID },
