@@ -36,7 +36,10 @@ module.exports = (bot) => {
             ctx.session.selectedUser = text;
             ctx.session.step = "awaiting_feedback";
 
-            await ctx.reply("🔄 در حال آماده‌سازی لینک بازخورد...");
+            const loadingMessage = await ctx.reply(
+                "🔄 در حال آماده‌سازی لینک بازخورد..."
+            );
+            ctx.session.loadingMessageId = loadingMessage.message_id;
         }
 
         if (ctx.session.step === "awaiting_feedback") {
@@ -77,19 +80,42 @@ module.exports = (bot) => {
                     .add(7, "days")
                     .format("jD jMMMM");
 
+                if (ctx.session.loadingMessageId) {
+                    try {
+                        await ctx.deleteMessage(ctx.session.loadingMessageId);
+                        ctx.session.loadingMessageId = null;
+                    } catch (err) {
+                        console.warn("❗ Error deleting loading message:", err);
+                    }
+                }
+
                 await ctx.reply(
-                    `📝 <b>لینک اختصاصی ثبت بازخورد شما آماده است!</b>\n\n` +
+                    `📝 لینک اختصاصی ثبت بازخورد شما آماده است!\n\n` +
                         `🔹 آیدی شما: <a href="https://t.me/${yourId}">@${yourId}</a>\n` +
                         `🔹 آیدی همیار فنی: <a href="https://t.me/${helperUsername}">@${helperUsername}</a>\n\n` +
-                        `این لینک برای ثبت بازخورد با <b>نام کاربری شما</b> ساخته شده است.\n` +
-                        `درصورت تغییر در آدرس، لینک معتبر نخواهد بود و بازخورد شما ارسال نخواهد شد.\n\n` +
-                        `⚠️ لینک تا <b>${expirationDate}</b> قابل استفاده است.\n\n` +
-                        `📎 <b>لینک شما:</b>\n${feedbackUrl}`,
+                        `این لینک به‌صورت اختصاصی و بر اساس نام کاربری شما و همیار فنی تعیین‌شده ساخته شده است.\n` +
+                        `توجه داشته باشید که هرگونه تغییر در آدرس لینک باعث نامعتبر شدن آن می‌شود و در نتیجه فیدبک ثبت نخواهد شد.\n\n` +
+                        `⚠️ این لینک تا تاریخ ${expirationDate} معتبر است و پس از آن غیرفعال خواهد شد.\n\n` +
+                        `📎 لینک ثبت بازخورد:\n${feedbackUrl}`,
                     {
                         parse_mode: "HTML",
                         disable_web_page_preview: true,
+                        reply_markup: {
+                            keyboard: [
+                                [{ text: "📝 ارسال بازخورد جلسه فنی" }],
+                                [{ text: "📚 لیست داکیومنت‌های موجود" }],
+                            ],
+                            resize_keyboard: true,
+                            is_persistent: true,
+                            input_field_placeholder:
+                                "لطفاً یک گزینه را انتخاب نمایید",
+                        },
                     }
                 );
+
+                ctx.session.step = null;
+                ctx.session.selectedUser = null;
+                ctx.session.availableUsers = null;
             } catch (err) {
                 console.error("❌ Feedback link error:", err);
                 ctx.reply("❌ مشکلی در ساخت لینک بازخورد پیش آمد.");

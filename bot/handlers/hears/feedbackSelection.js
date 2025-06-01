@@ -4,7 +4,10 @@ const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
 
 module.exports = (bot) => {
     bot.hears("📝 ارسال بازخورد جلسه فنی", async (ctx) => {
-        ctx.reply("🔄 در حال دریافت لیست همیاران فنی...");
+        const loadingMessage = await ctx.reply(
+            "🔄 در حال دریافت لیست همیاران فنی..."
+        );
+        ctx.session.loadingMessageId = loadingMessage.message_id;
 
         try {
             const response = await NOTION_API_KEY.databases.query({
@@ -35,6 +38,15 @@ module.exports = (bot) => {
 
             ctx.session.availableUsers = users;
             ctx.session.step = "awaiting_user_selection";
+
+            if (ctx.session.loadingMessageId) {
+                try {
+                    await ctx.deleteMessage(ctx.session.loadingMessageId);
+                    ctx.session.loadingMessageId = null;
+                } catch (err) {
+                    console.warn("❗ Error deleting loading message:", err);
+                }
+            }
 
             await ctx.reply(
                 "👤 لطفاً یک همیار فنی را برای ارسال بازخورد انتخاب نمایید:",

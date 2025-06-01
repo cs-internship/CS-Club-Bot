@@ -32,7 +32,8 @@ module.exports = (bot) => {
             date: new Date().toISOString(),
         };
 
-        ctx.reply("🔄 در حال ثبت اطلاعات شما...");
+        const loadingMessage = await ctx.reply("🔄 در حال ثبت اطلاعات شما...");
+        ctx.session.loadingMessageId = loadingMessage.message_id;
 
         try {
             await notion.pages.create({
@@ -58,9 +59,26 @@ module.exports = (bot) => {
 
             ctx.session.registered = true;
 
-            await ctx.reply(
-                `✅ اطلاعات شما با موفقیت ثبت شد ${fullNameInput}.`
-            );
+            if (ctx.session.loadingMessageId) {
+                try {
+                    await ctx.telegram.editMessageText(
+                        ctx.chat.id,
+                        ctx.session.loadingMessageId,
+                        undefined,
+                        `✅ اطلاعات شما با موفقیت ثبت شد ${fullNameInput}.`
+                    );
+                    ctx.session.loadingMessageId = null;
+                } catch (err) {
+                    console.warn("❗ Error editing loading message:", err);
+                    await ctx.reply(
+                        `✅ اطلاعات شما با موفقیت ثبت شد ${fullNameInput}.`
+                    );
+                }
+            } else {
+                await ctx.reply(
+                    `✅ اطلاعات شما با موفقیت ثبت شد ${fullNameInput}.`
+                );
+            }
 
             await mainMenu.showMainMenu(ctx);
         } catch (err) {
