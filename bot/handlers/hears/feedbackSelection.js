@@ -4,6 +4,8 @@ const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
 
 module.exports = (bot) => {
     bot.hears("📝 ارسال بازخورد جلسه فنی", async (ctx) => {
+        ctx.reply("🔄 در حال دریافت لیست همیاران فنی...");
+
         try {
             const response = await NOTION_API_KEY.databases.query({
                 database_id: NOTION_DATABASE_ID,

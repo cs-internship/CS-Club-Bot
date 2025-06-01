@@ -1,9 +1,9 @@
 const { Client } = require("@notionhq/client");
 const mainMenu = require("../scenes/mainMenu");
+const { NOTION_API_KEY, NOTION_DATABASE_ID } = require("../../config");
 require("dotenv").config();
 
-const notion = new Client({ auth: process.env.NOTION_API_KEY });
-const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
+const notion = new Client({ auth: NOTION_API_KEY });
 
 module.exports = (bot) => {
     bot.on("text", async (ctx, next) => {

@@ -1,4 +1,4 @@
-const { version } = require("../../package.json");
+const { version } = require("../../../package.json");
 const { ALLOWED_GROUPS } = require("../../config");
 
 module.exports = (bot) => {

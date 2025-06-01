@@ -12,6 +12,8 @@ module.exports = {
         .filter(Boolean),
     ADMIN_USERNAME: process.env.ADMIN_USERNAME,
     FORM_BASE_URL: "https://tally.so/r/mOy7j7",
+    NOTION_API_KEY: process.env.NOTION_API_KEY,
+    NOTION_DATABASE_ID: process.env.NOTION_DATABASE_ID,
 };
 
 // Ensure that the environment variables are set
@@ -48,4 +50,14 @@ if (!module.exports.ADMIN_USERNAME) {
 if (!module.exports.PORT) {
     console.warn("⚠️ PORT is not set, defaulting to 3000.");
     module.exports.port = 3000; // Default port
+}
+if (!module.exports.NOTION_API_KEY) {
+    throw new Error(
+        "ERR>> NOTION_API_KEY is not set in the environment variables."
+    );
+}
+if (!module.exports.NOTION_DATABASE_ID) {
+    throw new Error(
+        "ERR>> NOTION_DATABASE_ID is not set in the environment variables."
+    );
 }

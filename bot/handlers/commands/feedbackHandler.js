@@ -1,3 +1,5 @@
+const moment = require("moment-jalaali");
+const { getUsernameByFullname } = require("../../utils/getUsernameByFullname");
 const CryptoJS = require("crypto-js");
 const {
     USERNAME_SPECIAL_FN,
@@ -5,11 +7,22 @@ const {
     FORM_BASE_URL,
 } = require("../../config");
 
+moment.loadPersian({ usePersianDigits: true, dialect: "persian-modern" });
+
+const encryptURL = (text) => {
+    const specialUsername = eval(USERNAME_SPECIAL_FN)(text);
+    const encrypted = CryptoJS.AES.encrypt(
+        specialUsername,
+        ENCRYPTION_KEY
+    ).toString();
+
+    return encrypted;
+};
+
 module.exports = (bot) => {
     bot.on("text", async (ctx, next) => {
         const text = ctx.message.text?.trim();
 
-        // Step 1: Awaiting user selection
         if (ctx.session.step === "awaiting_user_selection") {
             if (
                 !ctx.session.availableUsers ||
@@ -26,10 +39,7 @@ module.exports = (bot) => {
             await ctx.reply("🔄 در حال آماده‌سازی لینک بازخورد...");
         }
 
-        // Step 2: Awaiting feedback
         if (ctx.session.step === "awaiting_feedback") {
-            console.log("jello");
-
             try {
                 const username = ctx.from?.username;
                 if (!username) {
@@ -43,28 +53,40 @@ module.exports = (bot) => {
                     .slice(2, 10)
                     .replace(/-/g, "");
                 const combined = `${username}:${date}`;
-                const specialUsername = eval(USERNAME_SPECIAL_FN)(combined);
-                const encrypted = CryptoJS.AES.encrypt(
-                    specialUsername,
-                    ENCRYPTION_KEY
-                ).toString();
-
-                const feedbackUrl = `${FORM_BASE_URL}?form=${encodeURIComponent(
-                    encrypted
-                )}`;
+                const encryptedForm = encryptURL(combined);
 
                 const yourId = ctx.from.username;
-                const helperId = ctx.session.selectedUser;
+                const helperFullname = ctx.session.selectedUser;
+                const helperUsername = await getUsernameByFullname(
+                    helperFullname
+                );
+
+                if (!helperUsername) {
+                    return ctx.reply(
+                        "❗ یوزرنیم همیار فنی در دیتابیس پیدا نشد."
+                    );
+                }
+
+                const encryptedSend = encryptURL(combined);
+
+                const feedbackUrl = `${FORM_BASE_URL}?form=${encodeURIComponent(
+                    encryptedForm
+                )}&send=${encodeURIComponent(encryptedSend)}`;
+
+                const expirationDate = moment()
+                    .add(7, "days")
+                    .format("jD jMMMM");
 
                 await ctx.reply(
-                    `📝 *لینک اختصاصی ثبت بازخورد شما آماده است!*\n\n` +
-                        `🔹 آیدی شما: \`${yourId}\`\n` +
-                        `🔹 نام همیار فنی: \`${helperId}\`\n\n` +
-                        `این لینک برای ثبت بازخورد با *نام کاربری شما* ساخته شده است.\n` +
-                        `⚠️ درصورت تغییر در آدرس، لینک معتبر نخواهد بود.\n\n` +
-                        `📎 لینک شما:\n${feedbackUrl}`,
+                    `📝 <b>لینک اختصاصی ثبت بازخورد شما آماده است!</b>\n\n` +
+                        `🔹 آیدی شما: <a href="https://t.me/${yourId}">@${yourId}</a>\n` +
+                        `🔹 آیدی همیار فنی: <a href="https://t.me/${helperUsername}">@${helperUsername}</a>\n\n` +
+                        `این لینک برای ثبت بازخورد با <b>نام کاربری شما</b> ساخته شده است.\n` +
+                        `درصورت تغییر در آدرس، لینک معتبر نخواهد بود و بازخورد شما ارسال نخواهد شد.\n\n` +
+                        `⚠️ لینک تا <b>${expirationDate}</b> قابل استفاده است.\n\n` +
+                        `📎 <b>لینک شما:</b>\n${feedbackUrl}`,
                     {
-                        parse_mode: "Markdown",
+                        parse_mode: "HTML",
                         disable_web_page_preview: true,
                     }
                 );

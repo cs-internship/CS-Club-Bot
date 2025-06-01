@@ -9,10 +9,10 @@ const groupIdCommand = require("./handlers/commands/groupId");
 
 // Message & hear handlers
 const groupHandler = require("./handlers/messages/groupHandler");
-const feedbackLinks = require("./handlers/hears/feedbackLinks");
 const feedbackSelection = require("./handlers/hears/feedbackSelection");
 const documentsList = require("./handlers/hears/documentsList");
 const mainMenu = require("./handlers/hears/mainMenu");
+const feedbackLinks = require("./handlers/hears/feedbackLinks");
 
 module.exports = (bot) => {
     // Core flows
