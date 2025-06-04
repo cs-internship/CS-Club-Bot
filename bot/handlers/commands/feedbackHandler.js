@@ -37,7 +37,12 @@ module.exports = (bot) => {
             ctx.session.step = "awaiting_feedback";
 
             const loadingMessage = await ctx.reply(
-                "🔄 در حال آماده‌سازی لینک بازخورد..."
+                "🔄 در حال آماده‌سازی لینک بازخورد...",
+                {
+                    reply_markup: {
+                        remove_keyboard: true,
+                    },
+                }
             );
             ctx.session.loadingMessageId = loadingMessage.message_id;
         }
@@ -70,7 +75,7 @@ module.exports = (bot) => {
                     );
                 }
 
-                const encryptedSend = encryptURL(combined);
+                const encryptedSend = encryptURL(helperUsername);
 
                 const feedbackUrl = `${FORM_BASE_URL}?form=${encodeURIComponent(
                     encryptedForm
@@ -90,25 +95,20 @@ module.exports = (bot) => {
                 }
 
                 await ctx.reply(
-                    `📝 لینک اختصاصی ثبت بازخورد شما آماده است!\n\n` +
-                        `🔹 آیدی شما: <a href="https://t.me/${yourId}">@${yourId}</a>\n` +
-                        `🔹 آیدی همیار فنی: <a href="https://t.me/${helperUsername}">@${helperUsername}</a>\n\n` +
+                    `📝 <b>لینک اختصاصی ثبت بازخورد شما آماده است!</b>\n\n` +
+                        `🔹 <b>آیدی شما:</b> <a href="https://t.me/${yourId}">@${yourId}</a>\n` +
+                        `🔹 <b>آیدی همیار فنی:</b> <a href="https://t.me/${helperUsername}">@${helperUsername}</a>\n\n` +
                         `این لینک به‌صورت اختصاصی و بر اساس نام کاربری شما و همیار فنی تعیین‌شده ساخته شده است.\n` +
-                        `توجه داشته باشید که هرگونه تغییر در آدرس لینک باعث نامعتبر شدن آن می‌شود و در نتیجه فیدبک ثبت نخواهد شد.\n\n` +
-                        `⚠️ این لینک تا تاریخ ${expirationDate} معتبر است و پس از آن غیرفعال خواهد شد.\n\n` +
-                        `📎 لینک ثبت بازخورد:\n${feedbackUrl}`,
+                        `توجه داشته باشید که هرگونه تغییر در آدرس لینک باعث <b>نامعتبر</b> شدن آن می‌شود و در نتیجه فیدبک ثبت نخواهد شد.\n\n` +
+                        `⚠️ <b>این لینک تا تاریخ ${expirationDate} معتبر است</b> و پس از آن غیرفعال خواهد شد.\n\n` +
+                        `📎 <b>لینک ثبت بازخورد:</b>\n${feedbackUrl}`,
                     {
                         parse_mode: "HTML",
                         disable_web_page_preview: true,
                         reply_markup: {
-                            keyboard: [
-                                [{ text: "📝 ارسال بازخورد جلسه فنی" }],
-                                [{ text: "📚 لیست داکیومنت‌های موجود" }],
-                            ],
+                            keyboard: [[{ text: "🔙 بازگشت به منو اصلی" }]],
                             resize_keyboard: true,
                             is_persistent: true,
-                            input_field_placeholder:
-                                "لطفاً یک گزینه را انتخاب نمایید",
                         },
                     }
                 );
