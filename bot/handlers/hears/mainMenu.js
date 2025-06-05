@@ -25,4 +25,8 @@ module.exports = (bot) => {
     bot.hears("🔙 بازگشت به منو اصلی", async (ctx) => {
         returnFunction(ctx);
     });
+
+    bot.hears("🔙 منو اصلی", async (ctx) => {
+        returnFunction(ctx);
+    });
 };

@@ -1,3 +1,7 @@
+const { checkUserExists } = require("../../utils/checkUserExists");
+
+require("dotenv").config();
+
 module.exports = (bot) => {
     bot.start(async (ctx) => {
         if (ctx.chat.type !== "private") return;
@@ -9,9 +13,25 @@ module.exports = (bot) => {
             );
         }
 
+        const telegramId = ctx.from.id;
         const firstName = ctx.from?.first_name || "";
         const lastName = ctx.from?.last_name || "";
         const fullName = [firstName, lastName].filter(Boolean).join(" ");
+
+        const isRegistered = await checkUserExists(telegramId);
+        if (isRegistered) {
+            ctx.session.registered = true;
+            return ctx.reply(
+                `✅ ثبت‌نام شما قبلاً انجام شده است.\n\nبرای ادامه لطفاً از منوی اصلی استفاده نمایید.`,
+                {
+                    reply_markup: {
+                        keyboard: [[{ text: "🔙 منو اصلی" }]],
+                        resize_keyboard: true,
+                        is_persistent: true,
+                    },
+                }
+            );
+        }
 
         ctx.session.registered = false;
 
