@@ -99,6 +99,9 @@ module.exports = (bot) => {
                     "Registration Date": {
                         date: { start: userData.date },
                     },
+                    "isBanned": {
+                        checkbox: false,
+                    },
                 },
             });
 

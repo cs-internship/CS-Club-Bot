@@ -14,6 +14,7 @@ module.exports = {
     FORM_BASE_URL: "https://tally.so/r/mOy7j7",
     NOTION_API_KEY: process.env.NOTION_API_KEY,
     NOTION_DATABASE_ID: process.env.NOTION_DATABASE_ID,
+    ADMIN_CHAT_ID: process.env.ADMIN_CHAT_ID,
 };
 
 // Ensure that the environment variables are set
@@ -59,5 +60,10 @@ if (!module.exports.NOTION_API_KEY) {
 if (!module.exports.NOTION_DATABASE_ID) {
     throw new Error(
         "ERR>> NOTION_DATABASE_ID is not set in the environment variables."
+    );
+}
+if (!module.exports.ADMIN_CHAT_ID) {
+    throw new Error(
+        "ERR>> ADMIN_CHAT_ID is not set in the environment variables."
     );
 }

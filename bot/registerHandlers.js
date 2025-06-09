@@ -5,6 +5,7 @@ const feedbackHandler = require("./handlers/commands/feedbackHandler");
 
 // Command handlers
 const versionCommand = require("./handlers/commands/version");
+const directMessageCommand = require("./handlers/commands/directMessage");
 const groupIdCommand = require("./handlers/commands/groupId");
 
 // Message & hear handlers
@@ -22,6 +23,7 @@ module.exports = (bot) => {
     // Commands
     versionCommand(bot);
     groupIdCommand(bot);
+    directMessageCommand(bot);
 
     // Messages & hears
     groupHandler(bot);

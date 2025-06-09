@@ -6,6 +6,7 @@ const {
     ENCRYPTION_KEY,
     FORM_BASE_URL,
 } = require("../../config");
+const { checkUserBanned } = require("../../utils/checkUserBanned");
 
 moment.loadPersian({ usePersianDigits: true, dialect: "persian-modern" });
 
@@ -53,6 +54,26 @@ module.exports = (bot) => {
                 if (!username) {
                     return ctx.reply(
                         "❌ یوزرنیم شما وجود ندارد. لطفاً ابتدا در تنظیمات تلگرام برای خود یک username تعریف کنید."
+                    );
+                }
+
+                const isBanned = await checkUserBanned(username);
+
+                if (isBanned === true) {
+                    ctx.session.step = null;
+                    ctx.session.selectedUser = null;
+
+                    console.warn(
+                        `User ${username} is banned and tried to access feedback link.`
+                    );
+
+                    return ctx.reply(
+                        "❌ شما در حال حاضر بن شده‌اید و نمی‌توانید بازخورد ارسال کنید."
+                    );
+                }
+                if (isBanned === null) {
+                    return ctx.reply(
+                        "⚠️ مشکلی در بررسی حساب شما پیش آمد. لطفاً بعداً دوباره تلاش کنید."
                     );
                 }
 
