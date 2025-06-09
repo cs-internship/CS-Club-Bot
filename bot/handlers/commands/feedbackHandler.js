@@ -24,6 +24,14 @@ module.exports = (bot) => {
     bot.on("text", async (ctx, next) => {
         const text = ctx.message.text?.trim();
 
+        if (text === "🔙 بازگشت") {
+            ctx.session.step = null;
+            ctx.session.selectedUser = null;
+            ctx.session.availableUsers = null;
+
+            return next();
+        }
+
         if (ctx.session.step === "awaiting_user_selection") {
             if (
                 !ctx.session.availableUsers ||
