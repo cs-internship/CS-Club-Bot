@@ -34,6 +34,10 @@ module.exports = (bot) => {
         }
 
         ctx.session.registered = false;
+        ctx.session.step = null;
+        ctx.session.selectedUser = null;
+        ctx.session.loadingMessageId = null;
+        ctx.session.availableUsers = null;
 
         await ctx.reply(
             `سلام ${fullName} 🌟\n\nبرای استفاده از امکانات بات، لطفاً اسم و فامیل خود را به فارسی ارسال نمایید.`,
