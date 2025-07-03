@@ -157,13 +157,13 @@ module.exports = (bot) => {
                             ctx.chat.id,
                             ctx.session.loadingMessageId,
                             undefined,
-                            `✅ اطلاعات شما با موفقیت ثبت شد.\nنام: ${userData.full_name_input}\nدوره: ${userData.track}`
+                            `✅ اطلاعات شما با موفقیت ثبت شد.\n\nنام: ${userData.full_name_input}\nدوره: ${userData.track}`
                         );
                         ctx.session.loadingMessageId = null;
                     } catch (err) {
                         console.warn("❗ Error editing loading message:", err);
                         await ctx.reply(
-                            `✅ اطلاعات شما با موفقیت ثبت شد.\nنام: ${userData.full_name_input}\nدوره: ${userData.track}`
+                            `✅ اطلاعات شما با موفقیت ثبت شد.\n\nنام: ${userData.full_name_input}\nدوره: ${userData.track}`
                         );
                     }
                 }

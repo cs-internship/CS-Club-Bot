@@ -20,6 +20,16 @@ module.exports = (bot) => {
                 database_id: NOTION_DATABASE_ID,
             });
 
+            const rule = await getRuleByUsername(ctx.from.username);
+
+            if (!rule) {
+                return ctx.reply(
+                    "❗ خطا در دریافت دوره شما. لطفاً بعداً تلاش کنید."
+                );
+            }
+
+            // console.log("Rule >>", rule);
+
             const users = response.results
                 .map((page) => {
                     const name =
@@ -29,7 +39,13 @@ module.exports = (bot) => {
                     if (page.properties["isHidden"]?.checkbox) {
                         return null;
                     }
-                    return name;
+
+                    if (
+                        rule ===
+                        page.properties["Rule"]?.multi_select?.[0]?.name
+                    ) {
+                        return name;
+                    }
                 })
                 .filter(Boolean);
 
@@ -40,7 +56,7 @@ module.exports = (bot) => {
             const keyboard = [];
             for (let i = 0; i < users.length; i += 2) {
                 const row = [{ text: users[i] }];
-                if (users[i + 1]) row.push({ text: users[i + 1] });
+                // if (users[i + 1]) row.push({ text: users[i + 1] });
                 keyboard.push(row);
             }
 
@@ -58,12 +74,8 @@ module.exports = (bot) => {
                 }
             }
 
-            const rule = await getRuleByUsername(ctx.from.username);
-
-            console.log("Rule >>", rule);
-
             await ctx.reply(
-                "👤 لطفاً یک همیار فنی را برای ارسال بازخورد انتخاب نمایید:\n" +
+                "👤 لطفاً یک همیار فنی را برای ارسال بازخورد انتخاب نمایید:\n\n" +
                     "دوره انتخابی: " +
                     (rule || "نامشخص"),
                 {

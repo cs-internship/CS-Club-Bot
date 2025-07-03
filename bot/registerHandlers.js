@@ -13,6 +13,7 @@ const groupHandler = require("./handlers/messages/groupHandler");
 const feedbackSelection = require("./handlers/hears/feedbackSelection");
 const documentsList = require("./handlers/hears/documentsList");
 const mainMenu = require("./handlers/hears/mainMenu");
+const mentorshipFeedback = require("./handlers/hears/mentorshipFeedback");
 
 module.exports = (bot) => {
     // Core flows
@@ -30,4 +31,5 @@ module.exports = (bot) => {
     feedbackSelection(bot);
     documentsList(bot);
     mainMenu(bot);
+    mentorshipFeedback(bot);
 };

@@ -5,7 +5,7 @@ const returnFunction = async (ctx) => {
                 keyboard: [
                     [{ text: "📝 ارسال بازخورد جلسه فنی" }],
                     [{ text: "📝 ارسال بازخورد جلسه کارگاه منتورشیپ" }],
-                    [{ text: "📚 لیست داکیومنت‌های موجود" }],
+                    // [{ text: "📚 لیست داکیومنت‌های موجود" }],
                 ],
                 resize_keyboard: true,
                 is_persistent: true,
