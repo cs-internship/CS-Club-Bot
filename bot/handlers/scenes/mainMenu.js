@@ -3,6 +3,7 @@ module.exports = {
         return {
             keyboard: [
                 [{ text: "📝 ارسال بازخورد جلسه فنی" }],
+                [{ text: "📝 ارسال بازخورد جلسه کارگاه منتورشیپ" }],
                 [{ text: "📚 لیست داکیومنت‌های موجود" }],
             ],
             resize_keyboard: true,
@@ -12,11 +13,8 @@ module.exports = {
     },
 
     async showMainMenu(ctx) {
-        await ctx.reply(
-            `لطفاً یکی از گزینه‌های زیر را انتخاب نمایید:`,
-            {
-                reply_markup: this.getMainMenuKeyboard(),
-            }
-        );
+        await ctx.reply(`لطفاً یکی از گزینه‌های زیر را انتخاب نمایید:`, {
+            reply_markup: this.getMainMenuKeyboard(),
+        });
     },
 };

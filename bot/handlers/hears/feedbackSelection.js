@@ -1,4 +1,5 @@
 const { Client } = require("@notionhq/client");
+const { getRuleByUsername } = require("../../utils/getRuleByUsername");
 const NOTION_API_KEY = new Client({ auth: process.env.NOTION_API_KEY });
 const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
 
@@ -24,6 +25,10 @@ module.exports = (bot) => {
                     const name =
                         page.properties["Full Name"]?.title?.[0]?.text
                             ?.content || null;
+
+                    if (page.properties["isHidden"]?.checkbox) {
+                        return null;
+                    }
                     return name;
                 })
                 .filter(Boolean);
@@ -53,8 +58,14 @@ module.exports = (bot) => {
                 }
             }
 
+            const rule = await getRuleByUsername(ctx.from.username);
+
+            console.log("Rule >>", rule);
+
             await ctx.reply(
-                "👤 لطفاً یک همیار فنی را برای ارسال بازخورد انتخاب نمایید:",
+                "👤 لطفاً یک همیار فنی را برای ارسال بازخورد انتخاب نمایید:\n" +
+                    "دوره انتخابی: " +
+                    (rule || "نامشخص"),
                 {
                     reply_markup: {
                         keyboard,

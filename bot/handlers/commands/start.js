@@ -21,6 +21,7 @@ module.exports = (bot) => {
         const isRegistered = await checkUserExists(telegramId);
         if (isRegistered) {
             ctx.session.registered = true;
+
             return ctx.reply(
                 `✅ ثبت‌نام شما قبلاً انجام شده است.\n\nبرای ادامه لطفاً از منوی اصلی استفاده نمایید.`,
                 {
@@ -38,6 +39,8 @@ module.exports = (bot) => {
         ctx.session.selectedUser = null;
         ctx.session.loadingMessageId = null;
         ctx.session.availableUsers = null;
+        ctx.session.loadingMessageId = null;
+        ctx.session.awaitingTrack = null;
 
         await ctx.reply(
             `سلام ${fullName} 🌟\n\nبرای استفاده از امکانات بات، لطفاً اسم و فامیل خود را به فارسی ارسال نمایید.`,
