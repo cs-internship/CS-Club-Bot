@@ -141,7 +141,7 @@ module.exports = (bot) => {
                         isBanned: {
                             checkbox: false,
                         },
-                        Rule: {
+                        Role: {
                             multi_select: [{ name: userData.track }],
                         },
                     },

@@ -1,7 +1,7 @@
 {
   "name": "cs-club-bot",
   "description": "CS-Club-Bot",
-  "version": "2.1.8",
+  "version": "2.1.9",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -4,9 +4,9 @@ const { NOTION_API_KEY, NOTION_DATABASE_ID } = require("../config");
 const notion = new Client({ auth: NOTION_API_KEY });
 const DATABASE_ID = NOTION_DATABASE_ID;
 
-const allowedRules = ["Web", "Machine Learning", "C#"];
+const allowedRoles = ["Web", "Machine Learning", "C#"];
 
-const getRuleByUsername = async (username) => {
+const getRoleByUsername = async (username) => {
     try {
         const response = await notion.databases.query({
             database_id: DATABASE_ID,
@@ -23,24 +23,24 @@ const getRuleByUsername = async (username) => {
         }
 
         const page = response.results[0];
-        const ruleProp = page.properties["Rule"];
+        const roleProp = page.properties["Role"];
 
-        if (!ruleProp || ruleProp.type !== "multi_select") {
-            throw new Error("Invalid 'Rule' property format.");
+        if (!roleProp || roleProp.type !== "multi_select") {
+            throw new Error("Invalid 'Role' property format.");
         }
 
-        const rule = ruleProp.multi_select[0]?.name || null;
+        const role = roleProp.multi_select[0]?.name || null;
 
-        if (allowedRules.includes(rule)) {
-            return rule;
+        if (allowedRoles.includes(role)) {
+            return role;
         } else {
-            console.warn(`⚠️ Rule "${rule}" is not in allowedRules.`);
+            console.warn(`⚠️ Role "${role}" is not in allowedRoles.`);
             return null;
         }
     } catch (err) {
-        console.error("❌ Error in getRuleByUsername:", err.message);
+        console.error("❌ Error in getRoleByUsername:", err.message);
         return null;
     }
 };
 
-module.exports = { getRuleByUsername };
+module.exports = { getRoleByUsername };

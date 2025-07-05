@@ -1,5 +1,5 @@
 const { Client } = require("@notionhq/client");
-const { getRuleByUsername } = require("../../utils/getRuleByUsername");
+const { getRoleByUsername } = require("../../utils/getRoleByUsername");
 const NOTION_API_KEY = new Client({ auth: process.env.NOTION_API_KEY });
 const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
 
@@ -20,15 +20,13 @@ module.exports = (bot) => {
                 database_id: NOTION_DATABASE_ID,
             });
 
-            const rule = await getRuleByUsername(ctx.from.username);
+            const role = await getRoleByUsername(ctx.from.username);
 
-            if (!rule) {
+            if (!role) {
                 return ctx.reply(
                     "❗ خطا در دریافت دوره شما. لطفاً بعداً تلاش کنید."
                 );
             }
-
-            // console.log("Rule >>", rule);
 
             const users = response.results
                 .map((page) => {
@@ -41,8 +39,8 @@ module.exports = (bot) => {
                     }
 
                     if (
-                        rule ===
-                        page.properties["Rule"]?.multi_select?.[0]?.name
+                        role ===
+                        page.properties["Role"]?.multi_select?.[0]?.name
                     ) {
                         return name;
                     }
@@ -54,7 +52,7 @@ module.exports = (bot) => {
             }
 
             const keyboard = [];
-            for (let i = 0; i < users.length; i += 2) {
+            for (let i = 0; i < users.length; i++) {
                 const row = [{ text: users[i] }];
                 // if (users[i + 1]) row.push({ text: users[i + 1] });
                 keyboard.push(row);
@@ -77,7 +75,7 @@ module.exports = (bot) => {
             await ctx.reply(
                 "👤 لطفاً یک همیار فنی را برای ارسال بازخورد انتخاب نمایید:\n\n" +
                     "دوره انتخابی: " +
-                    (rule || "نامشخص"),
+                    (role || "نامشخص"),
                 {
                     reply_markup: {
                         keyboard,
