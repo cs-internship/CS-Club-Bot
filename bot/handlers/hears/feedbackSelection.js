@@ -4,7 +4,7 @@ const NOTION_API_KEY = new Client({ auth: process.env.NOTION_API_KEY });
 const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
 
 module.exports = (bot) => {
-    bot.hears("📝 ارسال بازخورد جلسه فنی", async (ctx) => {
+    bot.hears("📝 ارسال بازخورد جلسه همیاری فنی", async (ctx) => {
         const loadingMessage = await ctx.reply(
             "🔄 در حال دریافت لیست همیاران فنی...",
             {
