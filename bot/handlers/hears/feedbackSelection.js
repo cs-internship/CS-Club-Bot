@@ -51,6 +51,8 @@ module.exports = (bot) => {
                 return ctx.reply("❗ هنوز هیچ کاربری ثبت نشده است.");
             }
 
+            users.push("اکانت تست");
+
             const keyboard = [];
             for (let i = 0; i < users.length; i++) {
                 const row = [{ text: users[i] }];
