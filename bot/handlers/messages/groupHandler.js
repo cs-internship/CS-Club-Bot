@@ -54,15 +54,29 @@ module.exports = (bot) => {
                         (entry) => entry.code === response
                     );
 
-                    response +=
+                    const explanationLink =
                         "\n\nتوضیح نحوه ساخت پیام:\n\nhttps://t.me/cs_internship/729";
+
+                    let finalMessage = "";
+
+                    if (response.includes("📊")) {
+                        const [firstPart, secondPart] = response.split("📊");
+
+                        finalMessage = `${firstPart.trim()}
+
+📊 <b>برای دیدن ادامه کلیک کنید:</b>
+<blockquote expandable>${secondPart.trim()}${explanationLink}</blockquote>`;
+                    } else {
+                        finalMessage = `${response}${explanationLink}`;
+                    }
 
                     await ctx.telegram.editMessageText(
                         chatId,
                         processingMessage.message_id,
                         undefined,
-                        errorEntry ? errorEntry.message : response,
+                        errorEntry ? errorEntry.message : finalMessage,
                         {
+                            parse_mode: "HTML",
                             disable_web_page_preview: true,
                         }
                     );
