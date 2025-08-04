@@ -158,4 +158,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Contact / Author Info
 
 -   **Author:** [Ali Sadeghi](https://github.com/AliSdg90)
--   **Project Maintainer:** [cs-internship](https://github.com/cs-internship)
+- **Developed for:** [CS Internship Program](https://github.com/cs-internship)
