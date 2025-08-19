@@ -1,21 +1,29 @@
 const { systemMessage } = require("../constants/systemMessage");
 
-const createMessage = (newMessage) => {
-    const message = [
+const createMessage = (newMessage, imageUrls = []) => {
+    const userContent = [
+        { type: "text", text: newMessage },
+        ...imageUrls.map((url) => ({
+            type: "image_url",
+            image_url: { url },
+        })),
+    ];
+
+    // console.log("User content:", userContent);
+
+    return [
         {
             role: "system",
-            content: systemMessage,
+            content: [{ type: "text", text: systemMessage }],
         },
         {
             role: "user",
-            content: newMessage,
+            content: userContent,
         },
     ];
-
-    return message;
 };
 
-const createOptions = (apiKeyPPLX, newMessage) => {
+const createOptions = (apiKeyPPLX, newMessage, imageUrls = []) => {
     return {
         method: "POST",
         headers: {
@@ -24,7 +32,7 @@ const createOptions = (apiKeyPPLX, newMessage) => {
         },
         body: JSON.stringify({
             model: "sonar-pro",
-            messages: createMessage(newMessage),
+            messages: createMessage(newMessage, imageUrls),
             temperature: 0.2,
             top_p: 0.85,
             top_k: 0,

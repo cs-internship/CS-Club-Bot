@@ -3,13 +3,17 @@ const createOptions = require("../utils/createOptions");
 const { ERROR_RESPONSES } = require("../constants/errorResponses");
 const { PERPLEXITY_API_KEY } = require("../config");
 
-async function sendToPerplexity(input) {
+async function sendToPerplexity(input, photoUrls) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 90000);
 
     try {
         const options = {
-            ...createOptions.createOptions(PERPLEXITY_API_KEY, input),
+            ...createOptions.createOptions(
+                PERPLEXITY_API_KEY,
+                input,
+                photoUrls
+            ),
             signal: controller.signal,
         };
 
