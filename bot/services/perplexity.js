@@ -33,7 +33,18 @@ async function sendToPerplexity(input, photoUrls) {
         }
 
         const resJson = await res.json();
-        return resJson.choices[0].message.content.replace(/\[\d+\]/g, "");
+        let content = resJson.choices[0].message.content.replace(
+            /\[\d+\]/g,
+            ""
+        );
+
+        // Escape HTML
+        content = content
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/&/g, "&amp;");
+
+        return content;
     } catch (error) {
         if (error.name === "AbortError") {
             return ERROR_RESPONSES.TIMEOUT.code;
