@@ -38,12 +38,6 @@ async function sendToPerplexity(input, photoUrls) {
             ""
         );
 
-        // Escape HTML
-        content = content
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/&/g, "&amp;");
-
         return content;
     } catch (error) {
         if (error.name === "AbortError") {
