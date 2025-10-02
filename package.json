@@ -1,12 +1,11 @@
 {
     "name": "cs-club-bot",
     "description": "CS-Club-Bot",
-    "version": "2.2.2",
+    "version": "2.2.3",
     "main": "index.js",
     "scripts": {
         "test": "jest"
     },
-    "type": "module",
     "keywords": [],
     "author": "",
     "license": "ISC",

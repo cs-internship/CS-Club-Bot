@@ -1,5 +1,7 @@
-const { sendToPerplexity } = require("../../services/perplexity");
+const { groupMessageValidator } = require("../../utils/groupMessageValidator");
+const { formatGroupMessage } = require("../../utils/formatGroupMessage");
 const { ERROR_RESPONSES } = require("../../constants/errorResponses");
+const { sendToPerplexity } = require("../../services/perplexity");
 const { safeChunkText } = require("../../utils/safeChunkText");
 const { escapeHtml } = require("../../utils/escapeHtml");
 const {
@@ -9,25 +11,6 @@ const {
 } = require("../../config");
 
 const mediaGroupCache = new Map();
-
-const formatFinalMessage = (response) => {
-    const explanationLink =
-        "\n\nتوضیح نحوه ساخت پیام:\n\nhttps://t.me/cs_internship/729";
-    const respStr =
-        typeof response === "string" ? response : String(response || "");
-
-    if (respStr.includes("📊")) {
-        const [firstPart, secondPart] = respStr.split("📊");
-        return `${escapeHtml(firstPart.trim())}
-
-📊 <b>برای دیدن ادامه کلیک کنید:</b>
-<blockquote expandable>${escapeHtml(secondPart.trim())}${escapeHtml(
-            explanationLink
-        )}</blockquote>`;
-    }
-
-    return escapeHtml(respStr) + escapeHtml(explanationLink);
-};
 
 module.exports = (bot) => {
     bot.on("message", async (ctx, next) => {
@@ -39,6 +22,8 @@ module.exports = (bot) => {
         const text = message.caption || message.text;
 
         let photoUrls = [];
+
+        // console.log("Message >>", message);
 
         if (message.photo) {
             const largePhoto = message.photo[message.photo.length - 1];
@@ -85,7 +70,9 @@ module.exports = (bot) => {
                         groupData.text,
                         groupData.photos,
                         chatId,
-                        message.message_id
+                        message.message_id,
+                        chatType,
+                        ctx
                     );
                 } catch (err) {
                     console.error(
@@ -130,90 +117,75 @@ module.exports = (bot) => {
             }
         }
 
-        if (chatType !== "private" && ALLOWED_GROUPS.includes(chatId)) {
-            if (text?.includes("#معرفی") || text?.includes("#no_ai")) {
-                return;
-            }
+        if (groupMessageValidator(chatType, chatId, text, ctx)) {
+            try {
+                const processingMessage = await ctx.telegram.sendMessage(
+                    chatId,
+                    "🕒 در حال پردازش...",
+                    { reply_to_message_id: message.message_id }
+                );
 
-            if (text?.toLowerCase().includes("#cs_internship")) {
-                try {
-                    const processingMessage = await ctx.telegram.sendMessage(
+                let response = await sendToPerplexity(text, photoUrls);
+
+                const errorEntry = Object.values(ERROR_RESPONSES).find(
+                    (entry) =>
+                        entry.code === response ||
+                        entry.code === String(response)
+                );
+
+                if (errorEntry) {
+                    await ctx.telegram.editMessageText(
                         chatId,
-                        "🕒 در حال پردازش...",
-                        { reply_to_message_id: message.message_id }
-                    );
-
-                    let response = await sendToPerplexity(text, photoUrls);
-
-                    const errorEntry = Object.values(ERROR_RESPONSES).find(
-                        (entry) =>
-                            entry.code === response ||
-                            entry.code === String(response)
-                    );
-
-                    if (errorEntry) {
-                        await ctx.telegram.editMessageText(
-                            chatId,
-                            processingMessage.message_id,
-                            undefined,
-                            escapeHtml(errorEntry.message),
-                            {
-                                parse_mode: "HTML",
-                                disable_web_page_preview: true,
-                            }
-                        );
-                    } else {
-                        const finalMessage = formatFinalMessage(response);
-                        const chunks = safeChunkText(finalMessage, 4000);
-
-                        await ctx.telegram.editMessageText(
-                            chatId,
-                            processingMessage.message_id,
-                            undefined,
-                            chunks[0],
-                            {
-                                parse_mode: "HTML",
-                                disable_web_page_preview: true,
-                            }
-                        );
-
-                        for (let i = 1; i < chunks.length; i++) {
-                            await ctx.telegram.sendMessage(chatId, chunks[i], {
-                                parse_mode: "HTML",
-                                disable_web_page_preview: true,
-                                reply_to_message_id: message.message_id,
-                            });
+                        processingMessage.message_id,
+                        undefined,
+                        escapeHtml(errorEntry.message),
+                        {
+                            parse_mode: "HTML",
+                            disable_web_page_preview: true,
                         }
-                    }
-                } catch (error) {
-                    console.error(
-                        "❌ Error processing message:",
-                        error && error.stack ? error.stack : error
                     );
-                    try {
-                        await ctx.reply("❌ مشکلی پیش اومد.");
-                    } catch (e) {
-                        console.error(
-                            "❌ Error sending fallback reply:",
-                            e && e.stack ? e.stack : e
-                        );
+                } else {
+                    const finalMessage = formatGroupMessage(response);
+                    const chunks = safeChunkText(finalMessage, 4000);
+
+                    await ctx.telegram.editMessageText(
+                        chatId,
+                        processingMessage.message_id,
+                        undefined,
+                        chunks[0],
+                        {
+                            parse_mode: "HTML",
+                            disable_web_page_preview: true,
+                        }
+                    );
+
+                    for (let i = 1; i < chunks.length; i++) {
+                        await ctx.telegram.sendMessage(chatId, chunks[i], {
+                            parse_mode: "HTML",
+                            disable_web_page_preview: true,
+                            reply_to_message_id: message.message_id,
+                        });
                     }
                 }
+            } catch (error) {
+                console.error(
+                    "❌ Error processing message:",
+                    error && error.stack ? error.stack : error
+                );
+                try {
+                    await ctx.reply("❌ مشکلی پیش اومد.");
+                } catch (e) {
+                    console.error(
+                        "❌ Error sending fallback reply:",
+                        e && e.stack ? e.stack : e
+                    );
+                }
             }
-
-            return;
         }
 
         if (chatType === "private") {
             return next();
         }
-
-        console.log("⛔ Unauthorized chat:");
-        console.log("Chat ID:", chatId);
-        console.log("Chat Title:", ctx.chat.title || "N/A");
-        console.log("User ID:", ctx.from?.id);
-        console.log("Username:", ctx.from?.username || "N/A");
-        console.log("-------------------------");
     });
 };
 
@@ -222,76 +194,76 @@ const processMessage = async (
     text,
     photoUrls,
     chatId,
-    replyToMessageId
+    replyToMessageId,
+    chatType,
+    ctx
 ) => {
-    if (text?.includes("#no_ai") || text?.includes("#معرفی")) {
-        return;
-    }
-
-    const processingMessage = await telegramClient.sendMessage(
-        chatId,
-        "🕒 در حال پردازش...",
-        {
-            reply_to_message_id: replyToMessageId,
-        }
-    );
-
-    try {
-        const response = await sendToPerplexity(text, photoUrls);
-
-        const errorEntry = Object.values(ERROR_RESPONSES).find(
-            (entry) =>
-                entry.code === response || entry.code === String(response)
+    if (groupMessageValidator(chatType, chatId, text, ctx)) {
+        const processingMessage = await telegramClient.sendMessage(
+            chatId,
+            "🕒 در حال پردازش...",
+            {
+                reply_to_message_id: replyToMessageId,
+            }
         );
 
-        if (errorEntry) {
+        try {
+            const response = await sendToPerplexity(text, photoUrls);
+
+            const errorEntry = Object.values(ERROR_RESPONSES).find(
+                (entry) =>
+                    entry.code === response || entry.code === String(response)
+            );
+
+            if (errorEntry) {
+                await telegramClient.editMessageText(
+                    chatId,
+                    processingMessage.message_id,
+                    undefined,
+                    escapeHtml(errorEntry.message),
+                    {
+                        parse_mode: "HTML",
+                        disable_web_page_preview: true,
+                    }
+                );
+                return;
+            }
+
+            const finalMessage = formatGroupMessage(response);
+            const chunks = safeChunkText(finalMessage, 4000);
+
             await telegramClient.editMessageText(
                 chatId,
                 processingMessage.message_id,
                 undefined,
-                escapeHtml(errorEntry.message),
+                chunks[0],
                 {
                     parse_mode: "HTML",
                     disable_web_page_preview: true,
                 }
             );
-            return;
-        }
-
-        const finalMessage = formatFinalMessage(response);
-        const chunks = safeChunkText(finalMessage, 4000);
-
-        await telegramClient.editMessageText(
-            chatId,
-            processingMessage.message_id,
-            undefined,
-            chunks[0],
-            {
-                parse_mode: "HTML",
-                disable_web_page_preview: true,
+            for (let i = 1; i < chunks.length; i++) {
+                await telegramClient.sendMessage(chatId, chunks[i], {
+                    parse_mode: "HTML",
+                    disable_web_page_preview: true,
+                    reply_to_message_id: replyToMessageId,
+                });
             }
-        );
-        for (let i = 1; i < chunks.length; i++) {
-            await telegramClient.sendMessage(chatId, chunks[i], {
-                parse_mode: "HTML",
-                disable_web_page_preview: true,
-                reply_to_message_id: replyToMessageId,
-            });
-        }
-    } catch (error) {
-        console.error(
-            "❌ Error processing message:",
-            error && error.stack ? error.stack : error
-        );
-        try {
-            await telegramClient.sendMessage(chatId, "❌ مشکلی پیش اومد.", {
-                reply_to_message_id: replyToMessageId,
-            });
-        } catch (e) {
+        } catch (error) {
             console.error(
-                "❌ Error sending fallback reply:",
-                e && e.stack ? e.stack : e
+                "❌ Error processing message:",
+                error && error.stack ? error.stack : error
             );
+            try {
+                await telegramClient.sendMessage(chatId, "❌ مشکلی پیش اومد.", {
+                    reply_to_message_id: replyToMessageId,
+                });
+            } catch (e) {
+                console.error(
+                    "❌ Error sending fallback reply:",
+                    e && e.stack ? e.stack : e
+                );
+            }
         }
     }
 };
