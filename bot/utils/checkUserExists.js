@@ -16,7 +16,7 @@ const checkUserExists = async (telegramId) => {
         });
 
         const userExists = response.results.length > 0;
-        console.log("✅ User exists in Notion:", userExists);
+        // console.log("✅ User exists in Notion:", userExists);
 
         return userExists;
     } catch (err) {

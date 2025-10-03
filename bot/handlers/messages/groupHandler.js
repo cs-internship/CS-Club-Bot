@@ -117,7 +117,7 @@ module.exports = (bot) => {
             }
         }
 
-        if (groupMessageValidator(chatType, chatId, text, ctx)) {
+        if (await groupMessageValidator(chatType, chatId, text, ctx)) {
             try {
                 const processingMessage = await ctx.telegram.sendMessage(
                     chatId,
@@ -126,6 +126,7 @@ module.exports = (bot) => {
                 );
 
                 let response = await sendToPerplexity(text, photoUrls);
+                // let response = "test";
 
                 const errorEntry = Object.values(ERROR_RESPONSES).find(
                     (entry) =>
@@ -198,7 +199,7 @@ const processMessage = async (
     chatType,
     ctx
 ) => {
-    if (groupMessageValidator(chatType, chatId, text, ctx)) {
+    if (await groupMessageValidator(chatType, chatId, text, ctx)) {
         const processingMessage = await telegramClient.sendMessage(
             chatId,
             "🕒 در حال پردازش...",
@@ -209,6 +210,7 @@ const processMessage = async (
 
         try {
             const response = await sendToPerplexity(text, photoUrls);
+            // let response = "test";
 
             const errorEntry = Object.values(ERROR_RESPONSES).find(
                 (entry) =>
