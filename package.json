@@ -1,6 +1,6 @@
 {
     "name": "cs-club-bot",
-    "version": "2.2.4",
+    "version": "2.2.5",
     "description": "Automated Telegram bot for CS internship clubs, with feedback system and AI-driven analysis.",
     "main": "./index.js",
     "scripts": {
@@ -20,12 +20,12 @@
     ],
     "author": {
     "name": "Ali Sadeghi",
-    "url": "https://github.com/alisadeghi"
+    "url": "https://github.com/Ali-Sdg90"
     },
     "contributors": [
         {
             "name": "Ali Sadeghi",
-            "url": "https://github.com/alisadeghi"
+            "url": "https://github.com/Ali-Sdg90"
         }
     ],
     "license": "MIT",
