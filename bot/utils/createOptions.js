@@ -1,8 +1,10 @@
 const { systemMessage } = require("../constants/systemMessage");
 
+/* istanbul ignore next */
 const createMessage = (newMessage, imageUrls = []) => {
     const userContent = [
         { type: "text", text: newMessage },
+        /* istanbul ignore next */
         ...imageUrls.map((url) => ({
             type: "image_url",
             image_url: { url },

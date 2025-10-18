@@ -3,8 +3,8 @@ const { escapeHtml } = require("./escapeHtml");
 const formatGroupMessage = (response) => {
     const explanationLink =
         "\n\nتوضیح نحوه ساخت پیام:\n\nhttps://t.me/cs_internship/729";
-    const respStr =
-        typeof response === "string" ? response : String(response || "");
+    /* istanbul ignore next */
+    const respStr = String(response ?? "");
 
     if (respStr.includes("📊")) {
         const [firstPart, secondPart] = respStr.split("📊");

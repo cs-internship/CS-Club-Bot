@@ -1,0 +1,158 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - feature/**
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: 🧪 Run Tests and Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test --silent
+
+      - name: Upload coverage report
+        if: ${{ env.IS_ACT != 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: jest-coverage
+          path: coverage/
+
+      - name: Generate test summary
+        if: always()
+        run: |
+          echo "### ✅ Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          npm test --silent >> $GITHUB_STEP_SUMMARY || true
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  release:
+    name: 🚀 Version & Release
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v4
+        with:
+          extra_plugins: |
+            @semantic-release/changelog
+            @semantic-release/git
+            @semantic-release/github
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
+  deploy:
+    name: 📦 Deploy to Render
+    runs-on: ubuntu-latest
+    needs: release
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Deploy to Render
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        run: |
+          curl -X POST "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys" \
+          -H "Accept: application/json" \
+          -H "Authorization: Bearer ${RENDER_API_KEY}" \
+          -d ''
+
+  notify:
+    name: 📢 Telegram Notification
+    runs-on: ubuntu-latest
+    needs: [test, release, deploy]
+    if: always()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+        
+      - name: Send Telegram notification
+        run: |
+          if [ "${IS_ACT}" = "true" ]; then
+            TEST_RESULT="success"
+            RELEASE_RESULT="success"
+            DEPLOY_RESULT="success"
+          else
+            TEST_RESULT="${{ needs.test.result }}"
+            RELEASE_RESULT="${{ needs.release.result }}"
+            DEPLOY_RESULT="${{ needs.deploy.result }}"
+          fi
+        
+          STATUS="✅ *Pipeline completed successfully*"
+          if [ "$TEST_RESULT" != "success" ]; then
+            STATUS="❌ *Tests failed*"
+          elif [ "$RELEASE_RESULT" != "success" ]; then
+            STATUS="❌ *Release failed*"
+          elif [ "$DEPLOY_RESULT" != "success" ]; then
+            STATUS="❌ *Deploy failed*"
+          fi
+        
+          VERSION=$(git describe --tags --abbrev=0 2>/dev/null || git rev-parse --short HEAD)
+          BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          COMMIT=$(git rev-parse --short HEAD)
+          REPO_URL="https://github.com/$GITHUB_REPOSITORY"
+          LAST_AUTHOR=$(git log -1 --pretty=format:'%an')
+        
+          MESSAGE="$STATUS  
+          🕓 *Date:* $(date)  
+          🏷️ *Version/Tag:* $VERSION  
+          🌿 *Branch:* $BRANCH  
+          🔀 *Commit:* $COMMIT  
+          👤 *Author:* $LAST_AUTHOR  
+          🔗 *Repo:* $REPO_URL"
+        
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d "text=$MESSAGE" \
+            -d "parse_mode=Markdown"
+        

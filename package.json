@@ -1,12 +1,18 @@
 {
     "name": "cs-club-bot",
-    "version": "2.2.5",
+    "version": "2.3.0",
     "description": "Automated Telegram bot for CS internship clubs, with feedback system and AI-driven analysis.",
     "main": "./index.js",
     "scripts": {
         "start": "node index.js",
         "dev": "nodemon index.js",
-        "format": "prettier --write ."
+        "format": "prettier --write .",
+        "test": "jest --coverage",
+        "test:watch": "jest --watch"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/cs-internship/CS-Club-Bot.git"
     },
     "keywords": [
         "telegram-bot",
@@ -19,8 +25,8 @@
         "student-management"
     ],
     "author": {
-    "name": "Ali Sadeghi",
-    "url": "https://github.com/Ali-Sdg90"
+        "name": "Ali Sadeghi",
+        "url": "https://github.com/Ali-Sdg90"
     },
     "contributors": [
         {
