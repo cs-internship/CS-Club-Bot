@@ -536,3 +536,427 @@ test("media_group processing logs error when processing throws inside timeout", 
     const { sendToPerplexity } = require("../../../../bot/services/perplexity");
     expect(sendToPerplexity).toHaveBeenCalled();
 });
+
+test("processMessage handles errorEntry for media_group by editing message with error text", async () => {
+    jest.resetModules();
+    jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
+        groupMessageValidator: jest.fn().mockResolvedValue(true),
+    }));
+    jest.doMock("../../../../bot/utils/formatGroupMessage", () => ({
+        formatGroupMessage: (x) => x,
+    }));
+    jest.doMock("../../../../bot/utils/safeChunkText", () => ({
+        safeChunkText: (t) => [t],
+    }));
+    jest.doMock("../../../../bot/utils/escapeHtml", () => ({
+        escapeHtml: (s) => s,
+    }));
+    // make sendToPerplexity return the error code
+    const {
+        ERROR_RESPONSES,
+    } = require("../../../../bot/constants/errorResponses");
+    jest.doMock("../../../../bot/services/perplexity", () => ({
+        sendToPerplexity: jest
+            .fn()
+            .mockResolvedValue(ERROR_RESPONSES.UNKNOWN.code),
+    }));
+    jest.doMock("../../../../bot/config", () => ({
+        ALLOWED_GROUPS: [50],
+        ADMIN_USERNAME: "admin",
+        TELEGRAM_BOT_TOKEN: "TOKEN",
+    }));
+
+    let edited = false;
+    const message1 = {
+        media_group_id: "mg_err",
+        chatId: 50,
+        chatType: "group",
+        text: "t1",
+        message_id: 2100,
+    };
+    const message2 = {
+        media_group_id: "mg_err",
+        chatId: 50,
+        chatType: "group",
+        photo: [{ file_id: "p1" }],
+        caption: "c",
+        message_id: 2101,
+    };
+
+    const ctx1 = {
+        message: message1,
+        chat: { id: 50, type: "group" },
+        from: { username: "user" },
+        telegram: {
+            getFile: async () => ({ file_path: "p" }),
+            sendMessage: async () => ({ message_id: 1234 }),
+            editMessageText: async () => {
+                edited = true;
+            },
+            callApi: async () => {},
+        },
+        reply: async () => {},
+    };
+    const ctx2 = { ...ctx1, message: message2 };
+
+    const groupHandler = require("../../../../bot/handlers/messages/groupHandler");
+    const bot = {
+        on: (evt, fn) => {
+            if (evt === "message") {
+                fn(ctx1, () => {});
+                fn(ctx2, () => {});
+            }
+        },
+    };
+
+    groupHandler(bot);
+    await new Promise((r) => setTimeout(r, 800));
+    await new Promise((r) => setImmediate(r));
+
+    expect(edited).toBe(true);
+});
+
+test("processMessage splits long response into chunks for media_group and sends subsequent messages", async () => {
+    jest.resetModules();
+    jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
+        groupMessageValidator: jest.fn().mockResolvedValue(true),
+    }));
+    jest.doMock("../../../../bot/utils/formatGroupMessage", () => ({
+        formatGroupMessage: (x) => x,
+    }));
+    jest.doMock("../../../../bot/utils/safeChunkText", () => ({
+        safeChunkText: (t) => ["first", "second", "third"],
+    }));
+    jest.doMock("../../../../bot/utils/escapeHtml", () => ({
+        escapeHtml: (s) => s,
+    }));
+    jest.doMock("../../../../bot/services/perplexity", () => ({
+        sendToPerplexity: jest.fn().mockResolvedValue("LONGMSG"),
+    }));
+    jest.doMock("../../../../bot/config", () => ({
+        ALLOWED_GROUPS: [60],
+        ADMIN_USERNAME: "admin",
+        TELEGRAM_BOT_TOKEN: "TOKEN",
+    }));
+
+    const sent = [];
+    const message1 = {
+        media_group_id: "mg_chunk",
+        chatId: 60,
+        chatType: "group",
+        text: "t1",
+        message_id: 3100,
+    };
+    const message2 = {
+        media_group_id: "mg_chunk",
+        chatId: 60,
+        chatType: "group",
+        photo: [{ file_id: "p1" }],
+        caption: "c",
+        message_id: 3101,
+    };
+
+    const ctx1 = {
+        message: message1,
+        chat: { id: 60, type: "group" },
+        from: { username: "user" },
+        telegram: {
+            getFile: async () => ({ file_path: "p" }),
+            sendMessage: async (chatId, text, opts) => {
+                sent.push({ chatId, text });
+                return { message_id: 2000 };
+            },
+            editMessageText: async (chatId, mid, undef, text, opts) => {
+                // first chunk
+                sent.push({ chatId, text });
+            },
+            callApi: async () => {},
+        },
+        reply: async () => {},
+    };
+    const ctx2 = { ...ctx1, message: message2 };
+
+    const groupHandler = require("../../../../bot/handlers/messages/groupHandler");
+    const bot = {
+        on: (evt, fn) => {
+            if (evt === "message") {
+                fn(ctx1, () => {});
+                fn(ctx2, () => {});
+            }
+        },
+    };
+
+    groupHandler(bot);
+    await new Promise((r) => setTimeout(r, 800));
+    await new Promise((r) => setImmediate(r));
+
+    // expect at least three outputs: processing message (sendMessage), first chunk (editMessageText), and two subsequent chunk messages
+    expect(sent.find((s) => s.text === "first")).toBeTruthy();
+    expect(sent.find((s) => s.text === "second")).toBeTruthy();
+    expect(sent.find((s) => s.text === "third")).toBeTruthy();
+});
+
+test("top-level handler fallback reply when sendToPerplexity throws", async () => {
+    jest.resetModules();
+    jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
+        groupMessageValidator: jest.fn().mockResolvedValue(true),
+    }));
+    jest.doMock("../../../../bot/utils/formatGroupMessage", () => ({
+        formatGroupMessage: (x) => x,
+    }));
+    jest.doMock("../../../../bot/utils/safeChunkText", () => ({
+        safeChunkText: (t) => [t],
+    }));
+    jest.doMock("../../../../bot/utils/escapeHtml", () => ({
+        escapeHtml: (s) => s,
+    }));
+    jest.doMock("../../../../bot/services/perplexity", () => ({
+        sendToPerplexity: jest.fn().mockRejectedValue(new Error("boom")),
+    }));
+    jest.doMock("../../../../bot/config", () => ({
+        ALLOWED_GROUPS: [7],
+        ADMIN_USERNAME: "admin",
+        TELEGRAM_BOT_TOKEN: "TOKEN",
+    }));
+
+    let replied = false;
+    const message = { text: "oops", entities: [], message_id: 4200 };
+    const ctx = {
+        message,
+        chat: { id: 7, type: "group" },
+        from: { username: "user" },
+        telegram: {
+            getFile: async () => ({ file_path: "p" }),
+            sendMessage: async () => ({ message_id: 999 }),
+            editMessageText: async () => {
+                throw new Error("edit fail");
+            },
+            callApi: async () => {},
+        },
+        reply: async () => {
+            replied = true;
+        },
+    };
+
+    const bot = {
+        on: (evt, fn) => {
+            if (evt === "message") fn(ctx, () => {});
+        },
+    };
+    const groupHandler = require("../../../../bot/handlers/messages/groupHandler");
+    groupHandler(bot);
+    await new Promise((r) => setImmediate(r));
+
+    expect(replied).toBe(true);
+});
+
+test("top-level nested fallback logs error when ctx.reply also throws", async () => {
+    jest.resetModules();
+    jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
+        groupMessageValidator: jest.fn().mockResolvedValue(true),
+    }));
+    jest.doMock("../../../../bot/utils/formatGroupMessage", () => ({
+        formatGroupMessage: (x) => x,
+    }));
+    jest.doMock("../../../../bot/utils/safeChunkText", () => ({
+        safeChunkText: (t) => [t],
+    }));
+    jest.doMock("../../../../bot/utils/escapeHtml", () => ({
+        escapeHtml: (s) => s,
+    }));
+    jest.doMock("../../../../bot/services/perplexity", () => ({
+        sendToPerplexity: jest.fn().mockRejectedValue(new Error("boom")),
+    }));
+    jest.doMock("../../../../bot/config", () => ({
+        ALLOWED_GROUPS: [7],
+        ADMIN_USERNAME: "admin",
+        TELEGRAM_BOT_TOKEN: "TOKEN",
+    }));
+
+    const consoleErrorSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+    const message = { text: "oops", entities: [], message_id: 4201 };
+    const ctx = {
+        message,
+        chat: { id: 7, type: "group" },
+        from: { username: "user" },
+        telegram: {
+            getFile: async () => ({ file_path: "p" }),
+            sendMessage: async () => ({ message_id: 999 }),
+            editMessageText: async () => {
+                throw new Error("edit fail");
+            },
+            callApi: async () => {},
+        },
+        reply: async () => {
+            throw new Error("reply fail");
+        },
+    };
+
+    const bot = {
+        on: (evt, fn) => {
+            if (evt === "message") fn(ctx, () => {});
+        },
+    };
+    const groupHandler = require("../../../../bot/handlers/messages/groupHandler");
+    groupHandler(bot);
+    await new Promise((r) => setImmediate(r));
+
+    expect(consoleErrorSpy).toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+});
+
+test("processMessage nested fallback logs error when fallback sendMessage throws", async () => {
+    jest.resetModules();
+    jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
+        groupMessageValidator: jest.fn().mockResolvedValue(true),
+    }));
+    jest.doMock("../../../../bot/utils/formatGroupMessage", () => ({
+        formatGroupMessage: (x) => x,
+    }));
+    jest.doMock("../../../../bot/utils/safeChunkText", () => ({
+        safeChunkText: (t) => [t],
+    }));
+    jest.doMock("../../../../bot/utils/escapeHtml", () => ({
+        escapeHtml: (s) => s,
+    }));
+    jest.doMock("../../../../bot/services/perplexity", () => ({
+        sendToPerplexity: jest.fn().mockRejectedValue(new Error("boom")),
+    }));
+    jest.doMock("../../../../bot/config", () => ({
+        ALLOWED_GROUPS: [80],
+        ADMIN_USERNAME: "admin",
+        TELEGRAM_BOT_TOKEN: "TOKEN",
+    }));
+
+    const consoleErrorSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+    const message1 = {
+        media_group_id: "mg_fallback",
+        chatId: 80,
+        chatType: "group",
+        text: "t1",
+        message_id: 5100,
+    };
+    const message2 = {
+        media_group_id: "mg_fallback",
+        chatId: 80,
+        chatType: "group",
+        photo: [{ file_id: "p1" }],
+        caption: "c",
+        message_id: 5101,
+    };
+
+    // sendMessage: first call (processingMessage) returns id, second call (fallback) throws
+    let callCount = 0;
+    const ctx1 = {
+        message: message1,
+        chat: { id: 80, type: "group" },
+        from: { username: "user" },
+        telegram: {
+            getFile: async () => ({ file_path: "p" }),
+            sendMessage: async () => {
+                callCount++;
+                if (callCount === 1) return { message_id: 6000 };
+                throw new Error("send fail");
+            },
+            editMessageText: async () => {},
+            callApi: async () => {},
+        },
+        reply: async () => {},
+    };
+    const ctx2 = { ...ctx1, message: message2 };
+
+    const groupHandler = require("../../../../bot/handlers/messages/groupHandler");
+    const bot = {
+        on: (evt, fn) => {
+            if (evt === "message") {
+                fn(ctx1, () => {});
+                fn(ctx2, () => {});
+            }
+        },
+    };
+
+    groupHandler(bot);
+    await new Promise((r) => setTimeout(r, 800));
+    await new Promise((r) => setImmediate(r));
+
+    expect(consoleErrorSpy).toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+});
+
+test("direct call to _processMessage edits message when errorEntry returned", async () => {
+    jest.resetModules();
+    jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
+        groupMessageValidator: jest.fn().mockResolvedValue(true),
+    }));
+    jest.doMock("../../../../bot/utils/escapeHtml", () => ({
+        escapeHtml: (s) => s,
+    }));
+    const {
+        ERROR_RESPONSES,
+    } = require("../../../../bot/constants/errorResponses");
+    jest.doMock("../../../../bot/services/perplexity", () => ({
+        sendToPerplexity: jest
+            .fn()
+            .mockResolvedValue(ERROR_RESPONSES.UNKNOWN.code),
+    }));
+
+    const telegramClient = {
+        sendMessage: async () => ({ message_id: 7000 }),
+        editMessageText: async (chatId, mid, u, text, opts) => {
+            // mark called
+            telegramClient._edited = text;
+        },
+        sendMessageCalled: false,
+    };
+
+    const groupHandlerModule = require("../../../../bot/handlers/messages/groupHandler");
+    const process = groupHandlerModule._processMessage;
+
+    await process(telegramClient, "x", [], 99, 123, "group", {});
+    expect(telegramClient._edited).toBeDefined();
+});
+
+test("direct call to _processMessage logs error when fallback sendMessage throws", async () => {
+    jest.resetModules();
+    jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
+        groupMessageValidator: jest.fn().mockResolvedValue(true),
+    }));
+    jest.doMock("../../../../bot/services/perplexity", () => ({
+        sendToPerplexity: jest.fn().mockRejectedValue(new Error("boom")),
+    }));
+    jest.doMock("../../../../bot/utils/escapeHtml", () => ({
+        escapeHtml: (s) => s,
+    }));
+    jest.doMock("../../../../bot/config", () => ({
+        TELEGRAM_BOT_TOKEN: "TOKEN",
+    }));
+
+    const consoleErrorSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+    let callCount = 0;
+    const telegramClient = {
+        sendMessage: async () => {
+            callCount++;
+            if (callCount === 1) return { message_id: 8000 };
+            throw new Error("send fail");
+        },
+        editMessageText: async () => {
+            throw new Error("edit fail");
+        },
+    };
+
+    const groupHandlerModule = require("../../../../bot/handlers/messages/groupHandler");
+    const process = groupHandlerModule._processMessage;
+
+    await process(telegramClient, "x", [], 100, 124, "group", {});
+    expect(consoleErrorSpy).toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+});

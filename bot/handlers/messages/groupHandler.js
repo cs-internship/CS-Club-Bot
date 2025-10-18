@@ -269,3 +269,6 @@ const processMessage = async (
         }
     }
 };
+
+// Export internal helper for unit tests (defined after function)
+module.exports._processMessage = processMessage;
