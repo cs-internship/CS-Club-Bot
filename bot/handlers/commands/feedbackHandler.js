@@ -94,9 +94,8 @@ module.exports = (bot) => {
 
                 const yourId = ctx.from.username;
                 const helperFullname = ctx.session.selectedUser;
-                const helperUsername = await getUsernameByFullname(
-                    helperFullname
-                );
+                const helperUsername =
+                    await getUsernameByFullname(helperFullname);
 
                 if (!helperUsername) {
                     return ctx.reply(
