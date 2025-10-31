@@ -10,6 +10,6 @@ module.exports = {
         "!**/coverage/**",
     ],
     coverageDirectory: "coverage",
-    coverageReporters: ["text", "lcov", "json-summary"],
-    testMatch: ["**/__tests__/**/*.test.js"],
+    setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
+    testPathIgnorePatterns: ["/node_modules/", "/coverage/"],
 };
