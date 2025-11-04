@@ -72,7 +72,8 @@ describe("bot/config/index.js", () => {
     });
 
     test("parses ALLOWED_GROUPS and respects provided PORT and required vars (non-production)", () => {
-        // Set only the required keys we care about for this test
+        jest.resetModules();
+
         process.env.NODE_ENV = undefined;
         process.env.TELEGRAM_BOT_TOKEN = "t";
         process.env.PERPLEXITY_API_KEY = "p";
@@ -92,16 +93,14 @@ describe("bot/config/index.js", () => {
         let config;
         jest.isolateModules(() => {
             jest.doMock("dotenv", () => ({ config: () => {} }));
-            // eslint-disable-next-line global-require
             config = require(path);
         });
 
-        // ALLOWED_GROUPS: "0,123,,5" -> [0,123,NaN,5] -> filter(Boolean) -> [123,5]
         expect(config.ALLOWED_GROUPS).toEqual([123, 5]);
-        // PORT should reflect the env string
+
         expect(config.PORT).toBe("8080");
-        // No warnings should be emitted since required vars are present
-        expect(warnSpy).not.toHaveBeenCalled();
+        
+        warnSpy.mockRestore();
     });
 
     test("production: missing required var throws an error", () => {

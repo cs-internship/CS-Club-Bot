@@ -13,7 +13,7 @@
     "lint": "eslint . --ext .js",
     "lint:fix": "eslint . --ext .js --fix",
     "act": "act --env-file .env.act --quiet",
-    "prepare": "husky && husky install"
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
