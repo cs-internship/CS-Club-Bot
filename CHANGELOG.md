@@ -1,3 +1,10 @@
+## [2.3.3](https://github.com/cs-internship/CS-Club-Bot/compare/v2.3.2...v2.3.3) (2025-11-04)
+
+
+### Bug Fixes
+
+* **ci,bot:** switch Telegram notifications to HTML, add HTML escaping, previews, and robust error handling; standardize failed-list formatting ([6004bda](https://github.com/cs-internship/CS-Club-Bot/commit/6004bda7cd49708755f28222abc216ce39babfd5))
+
 ## [2.3.2](https://github.com/cs-internship/CS-Club-Bot/compare/v2.3.1...v2.3.2) (2025-11-04)
 
 
