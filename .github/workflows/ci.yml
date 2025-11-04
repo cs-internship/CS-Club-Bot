@@ -169,7 +169,12 @@ jobs:
           ACTION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           RELEASE_TAG: ${{ needs.release.outputs.tag }}
           GITHUB_ACTOR: ${{ github.actor }}
+          DEBUG: "true"
         run: |
+          escape_html() {
+            printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g'
+          }
+
           if [ "${IS_ACT}" = "true" ]; then
             TAG="local-test"
           else
@@ -178,29 +183,44 @@ jobs:
 
           LAST_AUTHOR="${GITHUB_ACTOR}"
           AUTHOR_LINK="https://github.com/${LAST_AUTHOR}"
+          DATE=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
 
-          DATE=$(date +"%Y-%m-%d %H:%M:%S UTC")
+          eTAG=$(escape_html "$TAG")
+          eAuthor=$(escape_html "$LAST_AUTHOR")
+          eAuthorLink=$(escape_html "$AUTHOR_LINK")
+          eActionRun=$(escape_html "$ACTION_RUN_URL")
+          eDate=$(escape_html "$DATE")
 
-          escape_md() {
-            echo "$1" | perl -pe 's/([_\*\[\]\(\)~`>#+=|\{\}\.\!\-])/\\$1/g'
-          }
+          printf -v MESSAGE '%s\n%s\n%s\n%s\n%s' \
+            "🚀 <b>New release published!</b>" \
+            "🏷️ <b>Version:</b> ${eTAG}" \
+            "👤 <b>Author:</b> <a href=\"${eAuthorLink}\">${eAuthor}</a>" \
+            "🕓 <b>Date:</b> ${eDate}" \
+            "🔗 <a href=\"${eActionRun}\">View GitHub Action Run</a>"
 
-          eTAG=$(escape_md "$TAG")
-          eAuthor=$(escape_md "$LAST_AUTHOR")
-          eAuthorLink="$AUTHOR_LINK"
-          eActionRun="$ACTION_RUN_URL"
-          eDate=$(escape_md "$DATE")
+          if [ "${DEBUG}" = "true" ]; then
+            echo "---- Telegram message (preview) ----"
+            echo "$MESSAGE"
+            echo "------------------------------------"
+          fi
 
-          MESSAGE="🚀 *New release published!*\n"\
-          "🏷️ *Version:* ${eTAG}\n"\
-          "👤 *Author:* [${eAuthor}](${eAuthorLink})\n"\
-          "🕓 *Date:* ${eDate}\n"\
-          "🔗 [View GitHub Action Run](${eActionRun})"
-
-          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+          # send and capture body + http code
+          RESPONSE="$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
             --data-urlencode "text=${MESSAGE}" \
-            -d "parse_mode=MarkdownV2"
+            -d "parse_mode=HTML" \
+            -d "disable_web_page_preview=true" \
+            -w "\n%{http_code}")"
+
+          HTTP_CODE="$(echo "$RESPONSE" | tail -n1)"
+          BODY="$(echo "$RESPONSE" | sed '$d')"
+
+          if [ "$HTTP_CODE" != "200" ] || ! echo "$BODY" | grep -q '"ok":true'; then
+            echo "❌ Telegram API error. HTTP=$HTTP_CODE BODY=$BODY"
+            exit 1
+          fi
+
+          echo "✅ Telegram notification sent."
 
   notify-error:
     name: 📢 Telegram Error Notification
@@ -220,6 +240,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          DEBUG: "true"
         run: |
           LAST_AUTHOR="${GITHUB_ACTOR}"
           AUTHOR_LINK="https://github.com/${LAST_AUTHOR}"
@@ -240,25 +261,43 @@ jobs:
             exit 0
           fi
 
-          FAILED_LIST=$(IFS=','; echo "${FAILED_STEPS[*]}")
+          FAILED_LIST=$(IFS=', '; echo "${FAILED_STEPS[*]}")
 
-          escape_md() {
-            echo "$1" | perl -pe 's/([_\*\[\]\(\)~`>#+=|\{\}\.\!\-])/\\$1/g'
+          escape_html() {
+            printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g'
           }
 
-          eFailedList=$(escape_md "$FAILED_LIST")
-          eActor=$(escape_md "$LAST_AUTHOR")
-          eAuthorLink="$AUTHOR_LINK"
-          eRunURL="$GITHUB_RUN_URL"
-          eDate=$(escape_md "$(date -u +"%Y-%m-%d %H:%M:%S UTC")")
+          eFailedList=$(escape_html "$FAILED_LIST")
+          eActor=$(escape_html "$LAST_AUTHOR")
+          eAuthorLink=$(escape_html "$AUTHOR_LINK")
+          eRunURL=$(escape_html "$GITHUB_RUN_URL")
+          eDate=$(escape_html "$(date -u +"%Y-%m-%d %H:%M:%S UTC")")
 
-          MESSAGE="❌ *Pipeline Error Detected*\n"\
-          "⚠️ Failed Steps: *${eFailedList}*\n"\
-          "🕓 Date: ${eDate}\n"\
-          "👤 Triggered by: [${eActor}](${eAuthorLink})\n"\
-          "🔗 Run URL: [View Run](${eRunURL})"
+          printf -v MESSAGE '%s\n%s\n%s\n%s' \
+            "❌ <b>Pipeline Error Detected</b>" \
+            "⚠️ <b>Failed Steps:</b> ${eFailedList}" \
+            "🕓 <b>Date:</b> ${eDate}" \
+            "👤 <b>Triggered by:</b> <a href=\"${eAuthorLink}\">${eActor}</a> • 🔗 <a href=\"${eRunURL}\">View Run</a>"
 
-          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+          if [ "${DEBUG}" = "true" ]; then
+            echo "---- Telegram error message (preview) ----"
+            echo "$MESSAGE"
+            echo "------------------------------------------"
+          fi
+
+          RESPONSE="$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
             --data-urlencode "text=${MESSAGE}" \
-            -d "parse_mode=MarkdownV2"
+            -d "parse_mode=HTML" \
+            -d "disable_web_page_preview=true" \
+            -w "\n%{http_code}")"
+
+          HTTP_CODE="$(echo "$RESPONSE" | tail -n1)"
+          BODY="$(echo "$RESPONSE" | sed '$d')"
+
+          if [ "$HTTP_CODE" != "200" ] || ! echo "$BODY" | grep -q '"ok":true'; then
+            echo "❌ Telegram API error. HTTP=$HTTP_CODE BODY=$BODY"
+            exit 1
+          fi
+
+          echo "✅ Telegram error notification sent."
