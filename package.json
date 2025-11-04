@@ -1,6 +1,6 @@
 {
   "name": "cs-club-bot",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "Automated Telegram bot for CS internship clubs, with feedback system and AI-driven analysis.",
   "main": "./index.js",
   "scripts": {
@@ -55,8 +55,8 @@
     "moment-jalaali": "^0.10.4",
     "node-cron": "^4.2.1",
     "telegraf": "^4.16.3"
-},
-"devDependencies": {
+  },
+  "devDependencies": {
     "@babel/preset-env": "^7.22.20",
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
