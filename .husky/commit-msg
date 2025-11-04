@@ -1,5 +1,6 @@
-# Commitlint check
-npx commitlint --edit "$1" > /dev/null 2>&1
+# shellcheck shell=sh
+
+npx --no -- commitlint --edit "${1:-.git/COMMIT_EDITMSG}"
 RESULT=$?
 
 if [ $RESULT -ne 0 ]; then

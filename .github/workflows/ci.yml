@@ -142,7 +142,7 @@ jobs:
             -H "Authorization: Bearer ${RENDER_API_KEY}" \
             -d '')
 
-          if [ "$RESPONSE" != "200" ]; then
+          if [ "$RESPONSE" != "200" ] && [ "$RESPONSE" != "201" ]; then
             echo "❌ Render deploy failed with status $RESPONSE"
             cat response.json
             exit 1
@@ -168,6 +168,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           ACTION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           RELEASE_TAG: ${{ needs.release.outputs.tag }}
+          GITHUB_ACTOR: ${{ github.actor }}
         run: |
           if [ "${IS_ACT}" = "true" ]; then
             TAG="local-test"
@@ -175,18 +176,30 @@ jobs:
             TAG="${RELEASE_TAG}"
           fi
 
-          LAST_AUTHOR=$(git log -1 --pretty=format:'%an')
+          LAST_AUTHOR="${GITHUB_ACTOR}"
+          AUTHOR_LINK="https://github.com/${LAST_AUTHOR}"
+
           DATE=$(date +"%Y-%m-%d %H:%M:%S UTC")
 
-          MESSAGE="🚀 *New release published!*
-          🏷️ *Version:* ${TAG}
-          👤 *Author:* ${LAST_AUTHOR}
-          🕓 *Date:* ${DATE}
-          🔗 [View GitHub Action Run](${ACTION_RUN_URL})"
+          escape_md() {
+            echo "$1" | perl -pe 's/([_\*\[\]\(\)~`>#+=|\{\}\.\!\-])/\\$1/g'
+          }
+
+          eTAG=$(escape_md "$TAG")
+          eAuthor=$(escape_md "$LAST_AUTHOR")
+          eAuthorLink="$AUTHOR_LINK"
+          eActionRun="$ACTION_RUN_URL"
+          eDate=$(escape_md "$DATE")
+
+          MESSAGE="🚀 *New release published!*\n"\
+          "🏷️ *Version:* ${eTAG}\n"\
+          "👤 *Author:* [${eAuthor}](${eAuthorLink})\n"\
+          "🕓 *Date:* ${eDate}\n"\
+          "🔗 [View GitHub Action Run](${eActionRun})"
 
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            -d "chat_id=${TELEGRAM_CHAT_ID}" \
-            -d "text=$MESSAGE" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${MESSAGE}" \
             -d "parse_mode=MarkdownV2"
 
   notify-error:
@@ -205,7 +218,11 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
+          LAST_AUTHOR="${GITHUB_ACTOR}"
+          AUTHOR_LINK="https://github.com/${LAST_AUTHOR}"
           FAILED_STEPS=()
 
           if [ "${{ needs.test.result }}" = "failure" ]; then
@@ -224,13 +241,24 @@ jobs:
           fi
 
           FAILED_LIST=$(IFS=','; echo "${FAILED_STEPS[*]}")
-          MESSAGE="❌ *Pipeline Error Detected*
-          ⚠️ Failed Steps: *$FAILED_LIST*
-          🕓 Date: $(date +"%Y-%m-%d %H:%M:%S")
-          👤 Triggered by: $GITHUB_ACTOR
-          🔗 Run URL: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+          escape_md() {
+            echo "$1" | perl -pe 's/([_\*\[\]\(\)~`>#+=|\{\}\.\!\-])/\\$1/g'
+          }
+
+          eFailedList=$(escape_md "$FAILED_LIST")
+          eActor=$(escape_md "$LAST_AUTHOR")
+          eAuthorLink="$AUTHOR_LINK"
+          eRunURL="$GITHUB_RUN_URL"
+          eDate=$(escape_md "$(date -u +"%Y-%m-%d %H:%M:%S UTC")")
+
+          MESSAGE="❌ *Pipeline Error Detected*\n"\
+          "⚠️ Failed Steps: *${eFailedList}*\n"\
+          "🕓 Date: ${eDate}\n"\
+          "👤 Triggered by: [${eActor}](${eAuthorLink})\n"\
+          "🔗 Run URL: [View Run](${eRunURL})"
 
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-            -d "chat_id=${TELEGRAM_CHAT_ID}" \
-            -d "text=$MESSAGE" \
-            -d "parse_mode=Markdown"
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${MESSAGE}" \
+            -d "parse_mode=MarkdownV2"

@@ -4,7 +4,9 @@ require("dotenv").config();
 
 module.exports = (bot) => {
     bot.start(async (ctx) => {
-        if (ctx.chat.type !== "private") return;
+        if (ctx.chat.type !== "private") {
+            return;
+        }
 
         if (!ctx.from.username) {
             return ctx.reply(
@@ -17,6 +19,14 @@ module.exports = (bot) => {
         const firstName = ctx.from?.first_name || "";
         const lastName = ctx.from?.last_name || "";
         const fullName = [firstName, lastName].filter(Boolean).join(" ");
+
+        ctx.session.registered = false;
+        ctx.session.step = null;
+        ctx.session.selectedUser = null;
+        ctx.session.loadingMessageId = null;
+        ctx.session.availableUsers = null;
+        ctx.session.loadingMessageId = null;
+        ctx.session.awaitingTrack = null;
 
         const isRegistered = await checkUserExists(telegramId);
         if (isRegistered) {
@@ -33,14 +43,6 @@ module.exports = (bot) => {
                 }
             );
         }
-
-        ctx.session.registered = false;
-        ctx.session.step = null;
-        ctx.session.selectedUser = null;
-        ctx.session.loadingMessageId = null;
-        ctx.session.availableUsers = null;
-        ctx.session.loadingMessageId = null;
-        ctx.session.awaitingTrack = null;
 
         await ctx.reply(
             `سلام ${fullName} 🌟\n\nبرای استفاده از امکانات بات، لطفاً اسم و فامیل خود را به فارسی ارسال نمایید.`,
