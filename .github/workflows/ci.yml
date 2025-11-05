@@ -270,7 +270,7 @@ jobs:
           "⚠️ <b>Failed Steps:</b> ${eFailedList}" \
           "👤 <b>Triggered by:</b> <a href=\"${eAuthorLink}\">${eActor}</a>" \
           "🕓 <b>Date:</b> ${eDate}" \
-          "🔗 <a href=\"${eRunURL}\">View Run</a>"
+          "🔗 <a href=\"${eRunURL}\">View GitHub Action Run</a>"
 
           RESPONSE="$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
