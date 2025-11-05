@@ -1,3 +1,12 @@
+## [2.3.4](https://github.com/cs-internship/CS-Club-Bot/compare/v2.3.3...v2.3.4) (2025-11-05)
+
+
+### Bug Fixes
+
+* **ci:** remove DEBUG environment variable from Telegram notification steps; clean up preview logic, test ci/cd ([3f2d064](https://github.com/cs-internship/CS-Club-Bot/commit/3f2d064831797c13adfcdf9d6d6d0944881f3e91))
+* **ci:** test "Send Telegram error notification" in ci/cd ([0507672](https://github.com/cs-internship/CS-Club-Bot/commit/050767232fe60fa42b4712690db49a6108748632))
+* **ci:** update Telegram error notification message for clarity ([fc1b5ef](https://github.com/cs-internship/CS-Club-Bot/commit/fc1b5ef11884b1ca99a473375d26c6dc7e9e5392))
+
 ## [2.3.3](https://github.com/cs-internship/CS-Club-Bot/compare/v2.3.2...v2.3.3) (2025-11-04)
 
 

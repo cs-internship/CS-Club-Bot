@@ -1,6 +1,6 @@
 {
   "name": "cs-club-bot",
-  "version": "2.3.3",
+  "version": "2.3.4",
   "description": "Automated Telegram bot for CS internship clubs, with feedback system and AI-driven analysis.",
   "main": "./index.js",
   "scripts": {
