@@ -169,7 +169,6 @@ jobs:
           ACTION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           RELEASE_TAG: ${{ needs.release.outputs.tag }}
           GITHUB_ACTOR: ${{ github.actor }}
-          DEBUG: "true"
         run: |
           escape_html() {
             printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g'
@@ -197,12 +196,6 @@ jobs:
             "👤 <b>Author:</b> <a href=\"${eAuthorLink}\">${eAuthor}</a>" \
             "🕓 <b>Date:</b> ${eDate}" \
             "🔗 <a href=\"${eActionRun}\">View GitHub Action Run</a>"
-
-          if [ "${DEBUG}" = "true" ]; then
-            echo "---- Telegram message (preview) ----"
-            echo "$MESSAGE"
-            echo "------------------------------------"
-          fi
 
           # send and capture body + http code
           RESPONSE="$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
@@ -240,7 +233,6 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          DEBUG: "true"
         run: |
           LAST_AUTHOR="${GITHUB_ACTOR}"
           AUTHOR_LINK="https://github.com/${LAST_AUTHOR}"
@@ -278,12 +270,6 @@ jobs:
             "⚠️ <b>Failed Steps:</b> ${eFailedList}" \
             "🕓 <b>Date:</b> ${eDate}" \
             "👤 <b>Triggered by:</b> <a href=\"${eAuthorLink}\">${eActor}</a> • 🔗 <a href=\"${eRunURL}\">View Run</a>"
-
-          if [ "${DEBUG}" = "true" ]; then
-            echo "---- Telegram error message (preview) ----"
-            echo "$MESSAGE"
-            echo "------------------------------------------"
-          fi
 
           RESPONSE="$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
