@@ -1,3 +1,10 @@
+# [2.4.0](https://github.com/cs-internship/CS-Club-Bot/compare/v2.3.4...v2.4.0) (2025-11-08)
+
+
+### Features
+
+* **sneaky_reaction:** add Telegram reaction handling script ([be5d5ed](https://github.com/cs-internship/CS-Club-Bot/commit/be5d5ed78e9757d93e9314104590f27b801f78dd))
+
 ## [2.3.4](https://github.com/cs-internship/CS-Club-Bot/compare/v2.3.3...v2.3.4) (2025-11-05)
 
 
