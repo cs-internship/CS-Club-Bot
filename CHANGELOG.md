@@ -1,3 +1,10 @@
+## [2.4.1](https://github.com/cs-internship/CS-Club-Bot/compare/v2.4.0...v2.4.1) (2025-11-13)
+
+
+### Bug Fixes
+
+* **ci:** enhance Telegram notification messages with context ([a793201](https://github.com/cs-internship/CS-Club-Bot/commit/a793201cd919f61142824ad3ac0ea2654a89b65a))
+
 # [2.4.0](https://github.com/cs-internship/CS-Club-Bot/compare/v2.3.4...v2.4.0) (2025-11-08)
 
 
