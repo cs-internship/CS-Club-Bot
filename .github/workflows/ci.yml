@@ -191,7 +191,7 @@ jobs:
           eDate=$(escape_html "$DATE")
 
           printf -v MESSAGE '%s\n%s\n%s\n%s\n%s' \
-            "🚀 <b>New release published!</b>" \
+            "🚀 <b>New release published - CS Club Bot</b>" \
             "🏷️ <b>Version:</b> ${eTAG}" \
             "👤 <b>Author:</b> <a href=\"${eAuthorLink}\">${eAuthor}</a>" \
             "🕓 <b>Date:</b> ${eDate}" \
@@ -266,7 +266,7 @@ jobs:
           eDate=$(escape_html "$(date -u +"%Y-%m-%d %H:%M:%S UTC")")
 
           printf -v MESSAGE '%s\n%s\n%s\n%s\n%s' \
-          "❌ <b>Pipeline Error Detected</b>" \
+          "❌ <b>Pipeline Error Detected - CS Club Bot</b>" \
           "⚠️ <b>Failed Steps:</b> ${eFailedList}" \
           "👤 <b>Triggered by:</b> <a href=\"${eAuthorLink}\">${eActor}</a>" \
           "🕓 <b>Date:</b> ${eDate}" \
