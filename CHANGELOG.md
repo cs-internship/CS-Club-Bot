@@ -1,3 +1,10 @@
+## [2.4.2](https://github.com/cs-internship/CS-Club-Bot/compare/v2.4.1...v2.4.2) (2025-11-19)
+
+
+### Bug Fixes
+
+* **reaction:** move reaction constants to a separate module and update reaction handling logic ([e137121](https://github.com/cs-internship/CS-Club-Bot/commit/e1371216083b2c9446db2349f0a12c407a648208))
+
 ## [2.4.1](https://github.com/cs-internship/CS-Club-Bot/compare/v2.4.0...v2.4.1) (2025-11-13)
 
 
