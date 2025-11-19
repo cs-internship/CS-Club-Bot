@@ -1,51 +1,28 @@
 import { Telegraf } from "telegraf";
 import dotenv from "dotenv";
 import path from "path";
+import { REACTIONS_OBJ } from "./reaction_constants.js";
 
 dotenv.config({ path: path.resolve("../.env") });
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 const link = process.env.SNEAKY_REACTION_LINK;
 
-const REACTIONS_OBJ = {
-    1: "🎉",
-    2: "❤️",
-    3: "👍",
-    4: "😍",
-    5: "😎",
-    6: "😭",
-    7: "🤣",
-    8: "👏",
-    9: "🙏",
-    10: "👌",
-    11: "🤔",
-    12: "👀",
-    13: "😢",
-    14: "💔",
-    15: "🔥",
-    16: "🤩",
-    17: "🤓",
-    18: "🐋",
-    19: "🤝",
-    20: "👾",
-    21: "🫡",
-    22: "🦄",
-    23: "🤷‍♂️",
-    24: "💅",
-    25: "⚡",
-};
-
 // Configuration
-const SELECTED = 25;
-const ADD_REACTION = true; // true to add, false to remove
+const SELECTED = 13;
+const ADD_REACTION = true; // false = Remove reaction | true = Add reaction
 
 function parseTelegramLink(link) {
     const match = link.match(/t\.me\/c\/(\d+)\/(\d+)/);
     if (!match) throw new Error("Invalid Telegram link format");
+
     const channelId = match[1];
     const messageId = parseInt(match[2], 10);
-    const chatId = "-100" + channelId;
-    return { chatId, messageId };
+
+    return {
+        chatId: "-100" + channelId,
+        messageId,
+    };
 }
 
 async function handleReaction(link, emoji, add = true) {
@@ -54,9 +31,8 @@ async function handleReaction(link, emoji, add = true) {
     await bot.telegram.callApi("setMessageReaction", {
         chat_id: chatId,
         message_id: messageId,
-        type: "emoji",
-        emoji: emoji,
-        remove: !add,
+        reaction: add ? [{ type: "emoji", emoji }] : [],
+        is_big: false,
     });
 
     console.log(`Reaction ${emoji} ${add ? "added" : "removed"} successfully.`);
