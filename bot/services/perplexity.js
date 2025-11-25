@@ -1,8 +1,7 @@
 const fetch = require("node-fetch");
-
-const { PERPLEXITY_API_KEY } = require("../config");
-const { ERROR_RESPONSES } = require("../constants/errorResponses");
 const createOptions = require("../utils/createOptions");
+const { ERROR_RESPONSES } = require("../constants/errorResponses");
+const { PERPLEXITY_API_KEY } = require("../config");
 
 async function sendToPerplexity(input, photoUrls) {
     const controller = new AbortController();
@@ -34,7 +33,7 @@ async function sendToPerplexity(input, photoUrls) {
         }
 
         const resJson = await res.json();
-        const content = resJson.choices[0].message.content.replace(
+        let content = resJson.choices[0].message.content.replace(
             /\[\d+\]/g,
             ""
         );

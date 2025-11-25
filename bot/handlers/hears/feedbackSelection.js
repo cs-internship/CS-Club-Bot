@@ -1,5 +1,4 @@
 const { Client } = require("@notionhq/client");
-
 const { getRoleByUsername } = require("../../utils/getRoleByUsername");
 const NOTION_API_KEY = new Client({ auth: process.env.NOTION_API_KEY });
 const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
@@ -45,7 +44,6 @@ module.exports = (bot) => {
                     ) {
                         return name;
                     }
-                    return null;
                 })
                 .filter(Boolean);
 
@@ -95,7 +93,5 @@ module.exports = (bot) => {
                 "❌ مشکلی در دریافت اطلاعات کاربران پیش آمده است. لطفاً بعداً تلاش نمایید."
             );
         }
-
-        return null;
     });
 };

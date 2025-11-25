@@ -26,20 +26,21 @@ jest.doMock("../../../../bot/config", () => ({
 }));
 
 const groupHandler = require("../../../../bot/handlers/messages/groupHandler");
-const { sendToPerplexity } = require("../../../../bot/services/perplexity");
 const {
     groupMessageValidator,
 } = require("../../../../bot/utils/groupMessageValidator");
+const { sendToPerplexity } = require("../../../../bot/services/perplexity");
 
 // helper to create a bot and run the 'message' handler
 const runHandler = async (message, ctxOverrides = {}) => {
+    const calls = [];
     const ctx = {
         message,
         chat: { id: message.chatId || 1, type: message.chatType || "group" },
         from: { username: ctxOverrides.username || "user" },
         telegram: {
-            getFile: async () => ({ file_path: "path.jpg" }),
-            sendMessage: async () => ({ message_id: 999 }),
+            getFile: async (file_id) => ({ file_path: "path.jpg" }),
+            sendMessage: async (chatId, text, opts) => ({ message_id: 999 }),
             editMessageText: async () => {},
             callApi: async () => {},
         },
@@ -62,7 +63,7 @@ beforeEach(() => {
 
 test("process simple text message -> sends to perplexity and edits message with formatted result", async () => {
     const message = { text: "hello", entities: [], message_id: 123 };
-    const _ctx = await runHandler(message);
+    const ctx = await runHandler(message);
     expect(sendToPerplexity).toHaveBeenCalledWith("hello", []);
 });
 
@@ -73,7 +74,7 @@ test("photo message gets file and included in photoUrls", async () => {
         caption_entities: [],
         message_id: 124,
     };
-    const _ctx = await runHandler(message);
+    const ctx = await runHandler(message);
     expect(sendToPerplexity).toHaveBeenCalledWith("with photo", [
         "https://api.telegram.org/file/botTOKEN/path.jpg",
     ]);
@@ -149,11 +150,10 @@ test("admin exact-command calls next instead of reacting", async () => {
 
     const bot = {
         on: (evt, fn) => {
-            if (evt === "message") {
+            if (evt === "message")
                 fn(ctx, () => {
                     nextCalled = true;
                 });
-            }
         },
     };
     const groupHandler = require("../../../../bot/handlers/messages/groupHandler");
@@ -285,7 +285,7 @@ test("splits long response into multiple chunks and sends subsequent messages", 
         formatGroupMessage: (x) => x,
     }));
     jest.doMock("../../../../bot/utils/safeChunkText", () => ({
-        safeChunkText: (_t) => ["part1", "part2", "part3"],
+        safeChunkText: (t) => ["part1", "part2", "part3"],
     }));
     jest.doMock("../../../../bot/utils/escapeHtml", () => ({
         escapeHtml: (s) => s,
@@ -312,7 +312,7 @@ test("splits long response into multiple chunks and sends subsequent messages", 
                 sent.push({ chatId, text, opts });
                 return { message_id: 400 };
             },
-            editMessageText: async (chatId, mid, undef, text, _opts) => {
+            editMessageText: async (chatId, mid, undef, text, opts) => {
                 editedText = text;
             },
             callApi: async () => {},
@@ -349,11 +349,10 @@ test("private chat returns next() immediately", async () => {
     };
     const bot = {
         on: (evt, fn) => {
-            if (evt === "message") {
+            if (evt === "message")
                 fn(ctx, () => {
                     nextCalled = true;
                 });
-            }
         },
     };
     const groupHandler = require("../../../../bot/handlers/messages/groupHandler");
@@ -429,7 +428,7 @@ test("photo getFile throws and processing continues without photoUrls", async ()
         TELEGRAM_BOT_TOKEN: "TOKEN",
     }));
 
-    const _usedPhotoUrls = null;
+    let usedPhotoUrls = null;
     const message = {
         photo: [{ file_id: "f1" }],
         caption: "cap",
@@ -626,7 +625,7 @@ test("processMessage splits long response into chunks for media_group and sends 
         formatGroupMessage: (x) => x,
     }));
     jest.doMock("../../../../bot/utils/safeChunkText", () => ({
-        safeChunkText: (_t) => ["first", "second", "third"],
+        safeChunkText: (t) => ["first", "second", "third"],
     }));
     jest.doMock("../../../../bot/utils/escapeHtml", () => ({
         escapeHtml: (s) => s,
@@ -663,11 +662,11 @@ test("processMessage splits long response into chunks for media_group and sends 
         from: { username: "user" },
         telegram: {
             getFile: async () => ({ file_path: "p" }),
-            sendMessage: async (chatId, text, _opts) => {
+            sendMessage: async (chatId, text, opts) => {
                 sent.push({ chatId, text });
                 return { message_id: 2000 };
             },
-            editMessageText: async (chatId, mid, undef, text, _opts) => {
+            editMessageText: async (chatId, mid, undef, text, opts) => {
                 // first chunk
                 sent.push({ chatId, text });
             },
@@ -691,7 +690,7 @@ test("processMessage splits long response into chunks for media_group and sends 
     await new Promise((r) => setTimeout(r, 800));
     await new Promise((r) => setImmediate(r));
 
-    // expect at least three outputs: processing message, first chunk, and two subsequent chunk messages
+    // expect at least three outputs: processing message (sendMessage), first chunk (editMessageText), and two subsequent chunk messages
     expect(sent.find((s) => s.text === "first")).toBeTruthy();
     expect(sent.find((s) => s.text === "second")).toBeTruthy();
     expect(sent.find((s) => s.text === "third")).toBeTruthy();
@@ -909,7 +908,7 @@ test("direct call to _processMessage edits message when errorEntry returned", as
 
     const telegramClient = {
         sendMessage: async () => ({ message_id: 7000 }),
-        editMessageText: async (chatId, mid, u, text, _opts) => {
+        editMessageText: async (chatId, mid, u, text, opts) => {
             // mark called
             telegramClient._edited = text;
         },

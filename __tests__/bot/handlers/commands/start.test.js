@@ -3,10 +3,16 @@ jest.doMock("../../../../bot/utils/checkUserExists", () => ({
     checkUserExists: jest.fn(),
 }));
 
-const startModule = require("../../../../bot/handlers/commands/start");
 const { checkUserExists } = require("../../../../bot/utils/checkUserExists");
+const startModule = require("../../../../bot/handlers/commands/start");
 
 describe("start command", () => {
+    test("returns early for non-private chat", async () => {
+        const bot = { start: (fn) => fn({ chat: { type: "group" } }) };
+        startModule(bot);
+        // nothing to assert other than no throw
+    });
+
     test("prompts for username when missing", async () => {
         const replies = [];
         const ctx = {

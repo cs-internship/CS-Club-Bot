@@ -12,11 +12,11 @@ jest.doMock("../../../../bot/config", () => ({
     FORM_BASE_URL: "https://form",
 }));
 
-const feedbackModule = require("../../../../bot/handlers/commands/feedbackHandler");
 const { checkUserBanned } = require("../../../../bot/utils/checkUserBanned");
 const {
     getUsernameByFullname,
 } = require("../../../../bot/utils/getUsernameByFullname");
+const feedbackModule = require("../../../../bot/handlers/commands/feedbackHandler");
 
 // helper to create bot that immediately calls on('text') handler with ctx
 const makeBotAndRun = (ctx) => {

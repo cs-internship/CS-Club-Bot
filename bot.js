@@ -1,5 +1,4 @@
 const { Telegraf, session } = require("telegraf");
-
 const { TELEGRAM_BOT_TOKEN } = require("./bot/config");
 const registerHandlers = require("./bot/registerHandlers");
 

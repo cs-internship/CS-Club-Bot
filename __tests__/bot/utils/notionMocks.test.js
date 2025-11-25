@@ -103,12 +103,12 @@ jest.mock("../../../bot/config", () => ({
     ADMIN_CHAT_ID: 999,
 }));
 
-const { checkUserBanned } = require("../../../bot/utils/checkUserBanned");
 const { checkUserExists } = require("../../../bot/utils/checkUserExists");
-const { getRoleByUsername } = require("../../../bot/utils/getRoleByUsername");
+const { checkUserBanned } = require("../../../bot/utils/checkUserBanned");
 const {
     getUsernameByFullname,
 } = require("../../../bot/utils/getUsernameByFullname");
+const { getRoleByUsername } = require("../../../bot/utils/getRoleByUsername");
 
 describe("Notion-related utils", () => {
     test("checkUserExists returns true when user found", async () => {

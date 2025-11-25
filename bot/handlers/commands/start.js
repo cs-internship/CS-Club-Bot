@@ -5,7 +5,7 @@ require("dotenv").config();
 module.exports = (bot) => {
     bot.start(async (ctx) => {
         if (ctx.chat.type !== "private") {
-            return null;
+            return;
         }
 
         if (!ctx.from.username) {
@@ -52,7 +52,5 @@ module.exports = (bot) => {
                 },
             }
         );
-
-        return null;
     });
 };

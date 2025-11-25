@@ -1,10 +1,3 @@
-# [2.6.0](https://github.com/cs-internship/CS-Club-Bot/compare/v2.5.0...v2.6.0) (2025-11-25)
-
-
-### Features
-
-* **eslint:** add check script to run lint, test, and format checks; update dependencies and add .dockerignore ([221c5e4](https://github.com/cs-internship/CS-Club-Bot/commit/221c5e4650e68ef1468a89f7c27a407c4539e247))
-
 # [2.5.0](https://github.com/cs-internship/CS-Club-Bot/compare/v2.4.2...v2.5.0) (2025-11-25)
 
 

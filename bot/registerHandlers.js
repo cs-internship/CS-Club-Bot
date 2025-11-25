@@ -1,17 +1,19 @@
 // Core flow handlers
+const startHandler = require("./handlers/commands/start");
+const registrationHandler = require("./handlers/commands/registrationHandler");
+const feedbackHandler = require("./handlers/commands/feedbackHandler");
 
 // Command handlers
-const directMessageCommand = require("./handlers/commands/directMessage");
-const feedbackHandler = require("./handlers/commands/feedbackHandler");
-const groupIdCommand = require("./handlers/commands/groupId");
-const registrationHandler = require("./handlers/commands/registrationHandler");
-const startHandler = require("./handlers/commands/start");
 const versionCommand = require("./handlers/commands/version");
-const documentsList = require("./handlers/hears/documentsList");
+const directMessageCommand = require("./handlers/commands/directMessage");
+const groupIdCommand = require("./handlers/commands/groupId");
+
+// Message & hear handlers
+const groupHandler = require("./handlers/messages/groupHandler");
 const feedbackSelection = require("./handlers/hears/feedbackSelection");
+const documentsList = require("./handlers/hears/documentsList");
 const mainMenu = require("./handlers/hears/mainMenu");
 const mentorshipFeedback = require("./handlers/hears/mentorshipFeedback");
-const groupHandler = require("./handlers/messages/groupHandler");
 
 module.exports = (bot) => {
     // Core flows

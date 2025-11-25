@@ -1,5 +1,4 @@
 const { Client } = require("@notionhq/client");
-
 const { NOTION_API_KEY, NOTION_DATABASE_ID } = require("../config");
 
 const notion = new Client({

@@ -7,10 +7,10 @@ jest.doMock("telegraf", () => ({
         this.launch = jest.fn().mockResolvedValue();
         this.stop = jest.fn();
     },
-    session: () => (_req, _res, _next) => {},
+    session: () => (req, res, next) => {},
 }));
 
-jest.doMock("../../bot/registerHandlers", () => jest.fn((_b) => {}));
+jest.doMock("../../bot/registerHandlers", () => jest.fn((b) => {}));
 
 jest.doMock("../../bot/config", () => ({ TELEGRAM_BOT_TOKEN: "T" }));
 

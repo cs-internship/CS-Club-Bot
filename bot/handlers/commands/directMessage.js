@@ -5,7 +5,7 @@ module.exports = (bot) => {
         try {
             const chatId = ctx.chat.id;
 
-            if (Number(chatId) !== Number(ADMIN_CHAT_ID)) return;
+            if (+chatId !== +ADMIN_CHAT_ID) return;
 
             const messageText = ctx.message.text;
             const args = messageText.split(" ").slice(1);
