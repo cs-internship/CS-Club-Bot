@@ -99,7 +99,6 @@ describe("bot/config/index.js", () => {
         expect(config.ALLOWED_GROUPS).toEqual([123, 5]);
 
         expect(config.PORT).toBe("8080");
-        
         warnSpy.mockRestore();
     });
 

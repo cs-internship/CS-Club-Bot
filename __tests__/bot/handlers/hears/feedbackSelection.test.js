@@ -48,8 +48,11 @@ describe("feedbackSelection handler", () => {
             reply: async (text, opts) => {
                 const msg = { text, opts };
                 // simulate that first reply returns message_id
-                if (text.includes("در حال دریافت")) return { message_id: 99 };
+                if (text.includes("در حال دریافت")) {
+                    return { message_id: 99 };
+                }
                 replies.push(msg);
+                return null;
             },
             deleteMessage: async (id) => {
                 if (id !== 99) throw new Error("bad id");
@@ -145,9 +148,12 @@ describe("feedbackSelection handler", () => {
 
         const ctx = {
             reply: async (text) => {
-                if (text.includes("در حال دریافت")) return { message_id: 100 };
+                if (text.includes("در حال دریافت")) {
+                    return { message_id: 100 };
+                }
+                return null;
             },
-            deleteMessage: async (id) => {
+            deleteMessage: async (_id) => {
                 throw new Error("cannot delete");
             },
             session: {},

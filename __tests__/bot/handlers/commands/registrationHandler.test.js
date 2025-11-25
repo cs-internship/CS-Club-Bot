@@ -18,9 +18,9 @@ jest.doMock("../../../../bot/config", () => ({
     ADMIN_CHAT_ID: "1",
 }));
 
-const { checkUserExists } = require("../../../../bot/utils/checkUserExists");
-const { showMainMenu } = require("../../../../bot/handlers/scenes/mainMenu");
 const registrationModule = require("../../../../bot/handlers/commands/registrationHandler");
+const { showMainMenu } = require("../../../../bot/handlers/scenes/mainMenu");
+const { checkUserExists } = require("../../../../bot/utils/checkUserExists");
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -158,11 +158,14 @@ test("successful registration flow creates a Notion page and notifies admin", as
         session: { fullNameInput: "Ali Reza", awaitingTrack: true },
         message: { text: "Web" },
         from: { id: 5, username: "u", first_name: "A", last_name: "B" },
-        reply: async (t, opts) => {
+        reply: async (t, _opts) => {
             // simulate loading and other replies
-            if (t.includes("در حال ثبت اطلاعات شما"))
+            if (t.includes("در حال ثبت اطلاعات شما")) {
                 return { message_id: 999 };
+            }
             replies.push(t);
+
+            return null;
         },
         telegram: {
             editMessageText: async () => {},
@@ -197,10 +200,12 @@ test("registration handles editMessageText failing by warning and replying succe
         session: { fullNameInput: "Ali Reza", awaitingTrack: true },
         message: { text: "C#" },
         from: { id: 5, username: "u", first_name: "A", last_name: "B" },
-        reply: async (t, opts) => {
-            if (t.includes("در حال ثبت اطلاعات شما"))
+        reply: async (t, _opts) => {
+            if (t.includes("در حال ثبت اطلاعات شما")) {
                 return { message_id: 1000 };
+            }
             replies.push(t);
+            return null;
         },
         telegram: {
             editMessageText: async () => {
