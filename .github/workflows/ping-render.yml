@@ -1,0 +1,118 @@
+name: Ping Render Services
+
+on:
+  schedule:
+    - cron: "0 */1 * * *"
+  workflow_dispatch:
+
+jobs:
+  ping-and-notify:
+    runs-on: ubuntu-latest
+
+    env:
+      LINK_1: ${{ secrets.RENDER_LINK_1 }}
+      LINK_2: ${{ secrets.RENDER_LINK_2  }}
+      LINK_3: ${{ secrets.RENDER_LINK_3  }}
+      AUTOMATION_TELEGRAM_BOT_TOKEN: ${{ secrets.AUTOMATION_TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+    steps:
+      - name: Ping links and notify on failure
+        run: |
+          links=("$LINK_1" "$LINK_2" "$LINK_3")
+          failed_urls=()
+
+          for url in "${links[@]}"; do
+            echo "============================"
+            echo "Checking $url"
+            echo "============================"
+
+            attempts=0
+            max_attempts=2
+
+            until [ $attempts -ge $max_attempts ]
+            do
+              attempts=$((attempts+1))
+              echo "Attempt $attempts for $url"
+
+              if curl --fail --location --silent --show-error --max-time 30 "$url" > /dev/null; then
+                echo "OK: $url is healthy"
+                break
+              else
+                echo "Failed: $url did not respond correctly"
+                if [ $attempts -lt $max_attempts ]; then
+                  echo "Waiting 10 seconds before retry..."
+                  sleep 10
+                fi
+              fi
+            done
+
+            if [ $attempts -ge $max_attempts ]; then
+              echo "ERROR: $url is not healthy after $max_attempts attempts"
+              failed_urls+=("$url")
+            fi
+          done
+
+          if [ ${#failed_urls[@]} -eq 0 ]; then
+            echo "All links are healthy"
+
+            SUCCESS_MESSAGE="✅ <b>All services are up and healthy!</b>
+          <b>Timestamp:</b> $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          Everything is running smoothly. 🚀"
+
+            SUCCESS_RESPONSE="$(curl -s -X POST "https://api.telegram.org/bot${AUTOMATION_TELEGRAM_BOT_TOKEN}/sendMessage" \
+              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+              --data-urlencode "text=${SUCCESS_MESSAGE}" \
+              -d "parse_mode=HTML" \
+              -d "disable_web_page_preview=true" \
+              -w "\n%{http_code}")"
+
+            SUCCESS_HTTP_CODE="$(echo "$SUCCESS_RESPONSE" | tail -n1)"
+            SUCCESS_BODY="$(echo "$SUCCESS_RESPONSE" | sed '$d')"
+
+            if [ "$SUCCESS_HTTP_CODE" != "200" ] || ! echo "$SUCCESS_BODY" | grep -q '"ok":true'; then
+              echo "Telegram success notification failed. HTTP=$SUCCESS_HTTP_CODE BODY=$SUCCESS_BODY"
+              exit 1
+            fi
+
+            echo "Telegram success notification sent."
+            exit 0
+          fi
+
+          failed_list=$(IFS=' '; echo "${failed_urls[*]}")
+
+          escape_html() {
+            printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's/"/\&quot;/g'
+          }
+
+          eFailedUrls=$(escape_html "$failed_list")
+          eDate=$(escape_html "$(date -u +"%Y-%m-%d %H:%M:%S UTC")")
+
+          printf -v MESSAGE '%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s' \
+            "❗️ <b>Server Alert</b> ❗️" \
+            "<b>Failed endpoint(s):</b> ${eFailedUrls}" \
+            "<b>Timestamp:</b> ${eDate}" \
+            "" \
+            "The server may be asleep or experiencing an issue." \
+            "Please open the link(s) above to help wake the service." \
+            "" \
+            "If you are the first person to see this alert and wake the server, please like this message so we know everything is back online." \
+            "You are a hero!"
+
+          RESPONSE="$(curl -s -X POST "https://api.telegram.org/bot${AUTOMATION_TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${MESSAGE}" \
+            -d "parse_mode=HTML" \
+            -d "disable_web_page_preview=true" \
+            -w "\n%{http_code}")"
+
+          HTTP_CODE="$(echo "$RESPONSE" | tail -n1)"
+          BODY="$(echo "$RESPONSE" | sed '$d')"
+
+          if [ "$HTTP_CODE" != "200" ] || ! echo "$BODY" | grep -q '"ok":true'; then
+            echo "Telegram API error. HTTP=$HTTP_CODE BODY=$BODY"
+            exit 1
+          fi
+
+          echo "Telegram error notification sent."
+          exit 1

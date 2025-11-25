@@ -265,8 +265,9 @@ jobs:
           eRunURL=$(escape_html "$GITHUB_RUN_URL")
           eDate=$(escape_html "$(date -u +"%Y-%m-%d %H:%M:%S UTC")")
 
-          printf -v MESSAGE '%s\n%s\n%s\n%s\n%s' \
-          "❌ <b>Pipeline Error Detected - CS Club Bot</b>" \
+          printf -v MESSAGE '%s\n%s\n%s\n%s\n%s\n%s' \
+          "❌ <b>Pipeline Error Detected</b>" \
+          "🛠️ Service: CS Club Bot" \
           "⚠️ <b>Failed Steps:</b> ${eFailedList}" \
           "👤 <b>Triggered by:</b> <a href=\"${eAuthorLink}\">${eActor}</a>" \
           "🕓 <b>Date:</b> ${eDate}" \

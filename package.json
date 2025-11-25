@@ -12,7 +12,8 @@
     "format:check": "prettier --check .",
     "lint": "eslint . --ext .js",
     "lint:fix": "eslint . --ext .js --fix",
-    "act": "act --env-file .env.act --quiet",
+    "act:ci": "act --env-file .env.act --quiet",
+    "act:ping": "act workflow_dispatch --secret-file .env.act",
     "prepare": "husky"
   },
   "repository": {
