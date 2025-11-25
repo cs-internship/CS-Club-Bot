@@ -15,7 +15,7 @@ describe("mentorshipFeedback handler", () => {
         console.error = jest.fn();
         let call = 0;
         const ctx = {
-            reply: async (t) => {
+            reply: async (_t) => {
                 call++;
                 if (call === 1) return Promise.reject(new Error("boom"));
                 return Promise.resolve();

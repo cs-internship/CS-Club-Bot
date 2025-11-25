@@ -31,8 +31,9 @@ describe("Notion utils error paths", () => {
             Client: jest.fn().mockImplementation(() => ({
                 databases: {
                     query: async (opts) => {
-                        if (opts.filter.rich_text.equals === "missing")
+                        if (opts.filter.rich_text.equals === "missing") {
                             return { results: [] };
+                        }
                         return {
                             results: [
                                 {

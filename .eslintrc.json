@@ -1,27 +1,134 @@
-// Temp file
-// Fix it later!
-
 {
+    "root": true,
+    "ignorePatterns": [
+        "node_modules/",
+        "coverage/",
+        "dist/",
+        "build/",
+        "scripts/**",
+        ".*/**/*.js.snap"
+    ],
     "env": {
-        "es2021": true,
         "node": true,
+        "es2021": true,
         "jest": true
     },
-    "extends": ["eslint:recommended", "plugin:prettier/recommended"],
     "parserOptions": {
         "ecmaVersion": "latest",
-        "sourceType": "module"
+        "sourceType": "script",
+        "ecmaFeatures": {
+            "globalReturn": false
+        }
+    },
+    "plugins": ["prettier", "jest", "import", "node"],
+    "extends": [
+        "eslint:recommended",
+        "plugin:node/recommended",
+        "plugin:jest/recommended",
+        "plugin:import/recommended",
+        "plugin:prettier/recommended"
+    ],
+    "settings": {
+        "import/ignore": ["node_modules", "\\.json$"],
+        "node": {
+            "tryExtensions": [".js", ".json", ".node"]
+        }
     },
     "rules": {
-        "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
-        "no-console": "off",
-        "quotes": ["error", "double"],
-        "semi": ["error", "always"],
         "prettier/prettier": [
             "error",
             {
                 "endOfLine": "auto"
             }
+        ],
+
+        /* Preferred style */
+        "quotes": [
+            "error",
+            "double",
+            { "avoidEscape": true, "allowTemplateLiterals": true }
+        ],
+        "semi": ["error", "always"],
+        "indent": [
+            "error",
+            4,
+            { "SwitchCase": 1, "ignoredNodes": ["TemplateLiteral"] }
+        ],
+        "comma-dangle": ["error", "only-multiline"],
+
+        /* Best practices */
+        "eqeqeq": ["error", "always"],
+        "no-var": "error",
+        "prefer-const": ["error", { "destructuring": "all" }],
+        "curly": ["error", "multi-line"],
+        "no-implicit-coercion": "error",
+        "no-unsafe-optional-chaining": "error",
+        "consistent-return": "warn",
+
+        /* Node-specific */
+        "node/no-unsupported-features/es-syntax": "off",
+        "node/no-unpublished-require": "off",
+        "node/no-missing-require": "off",
+
+        /* Import plugin */
+        "import/no-unresolved": "off",
+        "import/no-extraneous-dependencies": "off",
+        "node/no-extraneous-require": "off",
+        "no-redeclare": "off",
+        "import/order": [
+            "error",
+            {
+                "groups": [
+                    "builtin",
+                    "external",
+                    "internal",
+                    "parent",
+                    "sibling",
+                    "index"
+                ],
+                "newlines-between": "always",
+                "alphabetize": { "order": "asc", "caseInsensitive": true }
+            }
+        ],
+
+        /* Common relaxations for this project */
+        // "no-console": ["warn", { "allow": ["warn", "error", "info"] }],
+        "no-unused-vars": [
+            "warn",
+            { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+        ],
+
+        /* Jest */
+        "jest/no-disabled-tests": "warn",
+        "jest/no-focused-tests": "error",
+        "jest/no-identical-title": "error",
+
+        /* Code clarity */
+        "max-len": [
+            "warn",
+            {
+                "code": 120,
+                "ignoreUrls": true,
+                "ignoreStrings": true,
+                "ignoreTemplateLiterals": true
+            }
         ]
-    }
+    },
+
+    "overrides": [
+        {
+            "files": ["**/__tests__/**", "**/*.test.js", "**/*.spec.js"],
+            "env": { "jest": true },
+            "rules": {
+                "no-unused-expressions": "off",
+                "no-console": "off"
+            }
+        },
+        {
+            "files": ["scripts/**", "*.config.js", "**/bin/**"],
+            "rules": {
+                "no-console": "off"
+            }
+        }
+    ]
 }

@@ -12,8 +12,8 @@ const safeChunkText = (fullText, limit = 4000) => {
         }
 
         // try split at last newline within limit
-        let slice = remaining.slice(0, limit);
-        let cutIndex = slice.lastIndexOf("\n");
+        const slice = remaining.slice(0, limit);
+        const cutIndex = slice.lastIndexOf("\n");
 
         if (cutIndex > Math.floor(limit * 0.5)) {
             // prefer newline if reasonably far in

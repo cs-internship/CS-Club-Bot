@@ -1,5 +1,6 @@
-const { NOTION_DATABASE_ID, NOTION_API_KEY } = require("../config");
 const { Client } = require("@notionhq/client");
+
+const { NOTION_DATABASE_ID, NOTION_API_KEY } = require("../config");
 
 const notion = new Client({ auth: NOTION_API_KEY });
 
