@@ -14,7 +14,7 @@ jobs:
       LINK_2: ${{ secrets.RENDER_LINK_2  }}
       LINK_3: ${{ secrets.RENDER_LINK_3  }}
       AUTOMATION_TELEGRAM_BOT_TOKEN: ${{ secrets.AUTOMATION_TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      AUTOMATION_TELEGRAM_CHAT_ID: ${{ secrets.AUTOMATION_TELEGRAM_CHAT_ID }}
 
     steps:
       - name: Ping links and notify on failure
@@ -79,7 +79,7 @@ jobs:
             "You are a hero!"
 
           RESPONSE="$(curl -s -X POST "https://api.telegram.org/bot${AUTOMATION_TELEGRAM_BOT_TOKEN}/sendMessage" \
-            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "chat_id=${AUTOMATION_TELEGRAM_CHAT_ID}" \
             --data-urlencode "text=${MESSAGE}" \
             -d "parse_mode=HTML" \
             -d "disable_web_page_preview=true" \
