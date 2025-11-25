@@ -1,3 +1,10 @@
+# [2.5.0](https://github.com/cs-internship/CS-Club-Bot/compare/v2.4.2...v2.5.0) (2025-11-25)
+
+
+### Features
+
+* **ping-render:** add ping and notify workflow for service health checks ([9ded6a4](https://github.com/cs-internship/CS-Club-Bot/commit/9ded6a4cd915e2c066c7fe4abb491acef3356529))
+
 ## [2.4.2](https://github.com/cs-internship/CS-Club-Bot/compare/v2.4.1...v2.4.2) (2025-11-19)
 
 
