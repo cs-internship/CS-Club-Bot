@@ -1,14 +1,14 @@
-const { groupMessageValidator } = require("../../utils/groupMessageValidator");
-const { formatGroupMessage } = require("../../utils/formatGroupMessage");
-const { ERROR_RESPONSES } = require("../../constants/errorResponses");
-const { sendToPerplexity } = require("../../services/perplexity");
-const { safeChunkText } = require("../../utils/safeChunkText");
-const { escapeHtml } = require("../../utils/escapeHtml");
 const {
     ALLOWED_GROUPS,
     ADMIN_USERNAME,
     TELEGRAM_BOT_TOKEN,
 } = require("../../config");
+const { ERROR_RESPONSES } = require("../../constants/errorResponses");
+const { sendToPerplexity } = require("../../services/perplexity");
+const { escapeHtml } = require("../../utils/escapeHtml");
+const { formatGroupMessage } = require("../../utils/formatGroupMessage");
+const { groupMessageValidator } = require("../../utils/groupMessageValidator");
+const { safeChunkText } = require("../../utils/safeChunkText");
 
 const mediaGroupCache = new Map();
 
@@ -21,7 +21,7 @@ module.exports = (bot) => {
         const entities = message.entities || message.caption_entities;
         const text = message.caption || message.text;
 
-        let photoUrls = [];
+        const photoUrls = [];
 
         // console.log("Message >>", message);
 
@@ -113,7 +113,7 @@ module.exports = (bot) => {
                 }
                 return;
             } else {
-                return next();
+                await next();
             }
         }
 
@@ -125,7 +125,7 @@ module.exports = (bot) => {
                     { reply_to_message_id: message.message_id }
                 );
 
-                let response = await sendToPerplexity(text, photoUrls);
+                const response = await sendToPerplexity(text, photoUrls);
                 // let response = "test";
 
                 const errorEntry = Object.values(ERROR_RESPONSES).find(
@@ -185,7 +185,7 @@ module.exports = (bot) => {
         }
 
         if (chatType === "private") {
-            return next();
+            await next();
         }
     });
 };
