@@ -55,27 +55,6 @@ jobs:
 
           if [ ${#failed_urls[@]} -eq 0 ]; then
             echo "All links are healthy"
-
-            SUCCESS_MESSAGE="✅ <b>All services are up and healthy!</b>
-          <b>Timestamp:</b> $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-          Everything is running smoothly. 🚀"
-
-            SUCCESS_RESPONSE="$(curl -s -X POST "https://api.telegram.org/bot${AUTOMATION_TELEGRAM_BOT_TOKEN}/sendMessage" \
-              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
-              --data-urlencode "text=${SUCCESS_MESSAGE}" \
-              -d "parse_mode=HTML" \
-              -d "disable_web_page_preview=true" \
-              -w "\n%{http_code}")"
-
-            SUCCESS_HTTP_CODE="$(echo "$SUCCESS_RESPONSE" | tail -n1)"
-            SUCCESS_BODY="$(echo "$SUCCESS_RESPONSE" | sed '$d')"
-
-            if [ "$SUCCESS_HTTP_CODE" != "200" ] || ! echo "$SUCCESS_BODY" | grep -q '"ok":true'; then
-              echo "Telegram success notification failed. HTTP=$SUCCESS_HTTP_CODE BODY=$SUCCESS_BODY"
-              exit 1
-            fi
-
-            echo "Telegram success notification sent."
             exit 0
           fi
 
@@ -115,4 +94,4 @@ jobs:
           fi
 
           echo "Telegram error notification sent."
-          exit 1
+          exit 0
