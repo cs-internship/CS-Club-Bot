@@ -1,3 +1,10 @@
+## [2.6.1](https://github.com/cs-internship/CS-Club-Bot/compare/v2.6.0...v2.6.1) (2025-11-25)
+
+
+### Bug Fixes
+
+* update environment variable name for Telegram chat ID and adjust workflow steps ([2239603](https://github.com/cs-internship/CS-Club-Bot/commit/22396033b398450edbbb03e4d22774c35b1f8b3a))
+
 # [2.6.0](https://github.com/cs-internship/CS-Club-Bot/compare/v2.5.0...v2.6.0) (2025-11-25)
 
 
