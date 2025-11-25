@@ -67,7 +67,7 @@ jobs:
           eFailedUrls=$(escape_html "$failed_list")
           eDate=$(escape_html "$(date -u +"%Y-%m-%d %H:%M:%S UTC")")
 
-          printf -v MESSAGE '%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s' \
+          printf -v MESSAGE '%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s' \
             "❗️ <b>Server Alert</b> ❗️" \
             "<b>Failed endpoint(s):</b> ${eFailedUrls}" \
             "<b>Timestamp:</b> ${eDate}" \
@@ -76,7 +76,10 @@ jobs:
             "Please open the link(s) above to help wake the service." \
             "" \
             "If you are the first person to see this alert and wake the server, please like this message so we know everything is back online." \
-            "You are a hero!"
+            "You are a hero!" \
+            "" \
+            "Explanation of this alert:" \
+            "https://t.me/c/1273069838/1/45903"
 
           RESPONSE="$(curl -s -X POST "https://api.telegram.org/bot${AUTOMATION_TELEGRAM_BOT_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${AUTOMATION_TELEGRAM_CHAT_ID}" \
