@@ -1,11 +1,12 @@
 const { Client } = require("@notionhq/client");
-const mainMenu = require("../scenes/mainMenu");
+
 const {
     NOTION_API_KEY,
     NOTION_DATABASE_ID,
     ADMIN_CHAT_ID,
 } = require("../../config");
 const { checkUserExists } = require("../../utils/checkUserExists");
+const mainMenu = require("../scenes/mainMenu");
 require("dotenv").config();
 
 const notion = new Client({ auth: NOTION_API_KEY });
@@ -58,7 +59,7 @@ module.exports = (bot) => {
                         },
                     }
                 );
-                return;
+                return null;
             }
 
             const fullNameInput = ctx.message.text?.trim();
@@ -193,5 +194,7 @@ module.exports = (bot) => {
                 );
             }
         }
+
+        return null;
     });
 };

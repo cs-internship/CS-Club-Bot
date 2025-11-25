@@ -32,8 +32,11 @@ describe("index.js startup", () => {
             .spyOn(process, "on")
             .mockImplementation((evt, cb) => {
                 // invoke uncaughtException handler with a test error to exercise the error branch
-                if (evt === "uncaughtException" && typeof cb === "function")
-                    cb(new Error("test-ex"));
+                if (evt === "uncaughtException" && typeof cb === "function") {
+                    {
+                        cb(new Error("test-ex"));
+                    }
+                }
             });
         const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
         const errorSpy = jest
@@ -94,8 +97,11 @@ describe("index.js startup", () => {
         const onSpy = jest
             .spyOn(process, "on")
             .mockImplementation((evt, cb) => {
-                if (evt === "uncaughtException" && typeof cb === "function")
-                    cb(new Error("test-ex"));
+                if (evt === "uncaughtException" && typeof cb === "function") {
+                    {
+                        cb(new Error("test-ex"));
+                    }
+                }
             });
         const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
         const errorSpy = jest
