@@ -6,11 +6,23 @@ const {
 const { ERROR_RESPONSES } = require("../../constants/errorResponses");
 const { sendToPerplexity } = require("../../services/perplexity");
 const { escapeHtml } = require("../../utils/escapeHtml");
-const { formatGroupMessage } = require("../../utils/formatGroupMessage");
+const {
+    formatGroupMessage,
+    formatGroupMessageChunks,
+} = require("../../utils/formatGroupMessage");
 const { groupMessageValidator } = require("../../utils/groupMessageValidator");
 const { safeChunkText } = require("../../utils/safeChunkText");
 
 const mediaGroupCache = new Map();
+
+// Fallback chunker for environments/tests that mock formatGroupMessageChunks
+const buildChunks = (response, limit = 4000) => {
+    if (typeof formatGroupMessageChunks === "function") {
+        return formatGroupMessageChunks(response, limit);
+    }
+
+    return safeChunkText(formatGroupMessage(response), limit);
+};
 
 module.exports = (bot) => {
     bot.on("message", async (ctx, next) => {
@@ -127,6 +139,9 @@ module.exports = (bot) => {
 
                 const response = await sendToPerplexity(text, photoUrls);
                 // let response = "test";
+                // const response = "<b>test</b> 📊" + "w".repeat(5000);
+
+                // console.log("Perplexity response >>", response);
 
                 const errorEntry = Object.values(ERROR_RESPONSES).find(
                     (entry) =>
@@ -146,8 +161,7 @@ module.exports = (bot) => {
                         }
                     );
                 } else {
-                    const finalMessage = formatGroupMessage(response);
-                    const chunks = safeChunkText(finalMessage, 4000);
+                    const chunks = buildChunks(response, 4000);
 
                     await ctx.telegram.editMessageText(
                         chatId,
