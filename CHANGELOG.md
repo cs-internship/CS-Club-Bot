@@ -1,3 +1,10 @@
+# [2.7.0](https://github.com/cs-internship/CS-Club-Bot/compare/v2.6.1...v2.7.0) (2025-12-09)
+
+
+### Features
+
+* add formatGroupMessageChunks function for chunked message formatting ([229ccc4](https://github.com/cs-internship/CS-Club-Bot/commit/229ccc4ba3f05e1d46aab4047b3b2a73257adc96))
+
 ## [2.6.1](https://github.com/cs-internship/CS-Club-Bot/compare/v2.6.0...v2.6.1) (2025-11-25)
 
 
