@@ -9,6 +9,8 @@ async function sendToPerplexity(input, photoUrls) {
     const timeout = setTimeout(() => controller.abort(), 90000);
 
     try {
+        console.log("photoUrls>>", photoUrls);
+
         const options = {
             ...createOptions.createOptions(
                 PERPLEXITY_API_KEY,
@@ -22,6 +24,8 @@ async function sendToPerplexity(input, photoUrls) {
             "https://api.perplexity.ai/chat/completions",
             options
         );
+
+        // console.log(options);
 
         if (!res.ok) {
             const status = res.status;

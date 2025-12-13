@@ -5,6 +5,9 @@ const config = {
     PORT: process.env.PORT || 3000,
     PERPLEXITY_API_KEY: process.env.PERPLEXITY_API_KEY,
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
+    IS_TEST_BOT:
+        typeof process.env.IS_TEST_BOT === "string" &&
+        process.env.IS_TEST_BOT.toLowerCase() === "true",
     USERNAME_SPECIAL_FN: process.env.USERNAME_SPECIAL_FN,
     ALLOWED_GROUPS: (process.env.ALLOWED_GROUPS || "")
         .split(",")

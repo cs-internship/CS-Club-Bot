@@ -1,5 +1,5 @@
 const { version } = require("../../../package.json");
-const { ALLOWED_GROUPS } = require("../../config");
+const { ALLOWED_GROUPS, IS_TEST_BOT } = require("../../config");
 
 module.exports = (bot) => {
     bot.command("version", (ctx) => {
@@ -7,7 +7,8 @@ module.exports = (bot) => {
             ctx.chat.type !== "private" &&
             ALLOWED_GROUPS.includes(ctx.chat.id)
         ) {
-            ctx.reply(`🤖 Bot version: ${version}`);
+            const versionLabel = IS_TEST_BOT ? `${version} - test` : version;
+            ctx.reply(`🤖 Bot version: ${versionLabel}`);
         }
     });
 };

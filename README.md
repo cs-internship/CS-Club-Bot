@@ -67,6 +67,7 @@ Create a `.env` file in the project root with the following variables:
 | NOTION_API_KEY      | Notion API key                                 |
 | NOTION_DATABASE_ID  | Notion database ID                             |
 | ADMIN_CHAT_ID       | Telegram chat ID for admin group notifications |
+| IS_TEST_BOT         | Set to true to append "- test" to the version reply |
 
 ## Bot Commands
 
