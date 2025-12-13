@@ -1,3 +1,10 @@
+# [2.8.0](https://github.com/cs-internship/CS-Club-Bot/compare/v2.7.0...v2.8.0) (2025-12-13)
+
+
+### Features
+
+* add IS_TEST_BOT configuration and update version command response ([8989e84](https://github.com/cs-internship/CS-Club-Bot/commit/8989e84f3bcd1cad4ed02130c8e3afa2a70388a7))
+
 # [2.7.0](https://github.com/cs-internship/CS-Club-Bot/compare/v2.6.1...v2.7.0) (2025-12-09)
 
 
