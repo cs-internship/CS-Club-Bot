@@ -3,19 +3,26 @@ const fetch = require("node-fetch");
 const { PERPLEXITY_API_KEY } = require("../config");
 const { ERROR_RESPONSES } = require("../constants/errorResponses");
 const createOptions = require("../utils/createOptions");
+const { imageUrlToBase64 } = require("../utils/imageUrlToBase64");
 
-async function sendToPerplexity(input, photoUrls) {
+async function sendToPerplexity(input, photoUrls = []) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 90000);
 
     try {
         console.log("photoUrls>>", photoUrls);
 
+        const base64Images = await Promise.all(
+            photoUrls.map((url) => imageUrlToBase64(url))
+        );
+
+        console.log("base64Images>>", base64Images);
+
         const options = {
             ...createOptions.createOptions(
                 PERPLEXITY_API_KEY,
                 input,
-                photoUrls
+                base64Images
             ),
             signal: controller.signal,
         };
