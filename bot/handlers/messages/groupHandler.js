@@ -1,8 +1,4 @@
-const {
-    ALLOWED_GROUPS,
-    ADMIN_USERNAME,
-    TELEGRAM_BOT_TOKEN,
-} = require("../../config");
+const { ALLOWED_GROUPS, ADMIN_USERNAME } = require("../../config");
 const { ERROR_RESPONSES } = require("../../constants/errorResponses");
 const { sendToPerplexity } = require("../../services/perplexity");
 const { escapeHtml } = require("../../utils/escapeHtml");
@@ -33,21 +29,14 @@ module.exports = (bot) => {
         const entities = message.entities || message.caption_entities;
         const text = message.caption || message.text;
 
-        const photoUrls = [];
+        const photoFileIds = [];
 
         // console.log("Message >>", message);
 
         if (message.photo) {
             const largePhoto = message.photo[message.photo.length - 1];
-            try {
-                const file = await ctx.telegram.getFile(largePhoto.file_id);
-                const fileUrl = `https://api.telegram.org/file/bot${TELEGRAM_BOT_TOKEN}/${file.file_path}`;
-                photoUrls.push(fileUrl);
-            } catch (err) {
-                console.error(
-                    "❌ Error getting file:",
-                    err && err.stack ? err.stack : err
-                );
+            if (largePhoto?.file_id) {
+                photoFileIds.push(largePhoto.file_id);
             }
         }
 
@@ -58,7 +47,7 @@ module.exports = (bot) => {
             if (!mediaGroupCache.has(compositeKey)) {
                 mediaGroupCache.set(compositeKey, {
                     text: "",
-                    photos: [],
+                    photoFileIds: [],
                     isProcessing: false,
                     timeout: null,
                 });
@@ -68,7 +57,7 @@ module.exports = (bot) => {
             if (text) {
                 groupData.text = text;
             }
-            groupData.photos.push(...photoUrls);
+            groupData.photoFileIds.push(...photoFileIds);
 
             if (groupData.timeout) clearTimeout(groupData.timeout);
 
@@ -80,7 +69,7 @@ module.exports = (bot) => {
                     await processMessage(
                         ctx.telegram,
                         groupData.text,
-                        groupData.photos,
+                        groupData.photoFileIds,
                         chatId,
                         message.message_id,
                         chatType,
@@ -137,7 +126,11 @@ module.exports = (bot) => {
                     { reply_to_message_id: message.message_id }
                 );
 
-                const response = await sendToPerplexity(text, photoUrls);
+                const response = await sendToPerplexity(
+                    text,
+                    photoFileIds,
+                    ctx.telegram
+                );
                 // let response = "test";
                 // const response = "<b>test</b> 📊" + "w".repeat(5000);
 
@@ -207,7 +200,7 @@ module.exports = (bot) => {
 const processMessage = async (
     telegramClient,
     text,
-    photoUrls,
+    photoFileIds,
     chatId,
     replyToMessageId,
     chatType,
@@ -223,7 +216,11 @@ const processMessage = async (
         );
 
         try {
-            const response = await sendToPerplexity(text, photoUrls);
+            const response = await sendToPerplexity(
+                text,
+                photoFileIds,
+                telegramClient
+            );
             // let response = "test";
 
             const errorEntry = Object.values(ERROR_RESPONSES).find(

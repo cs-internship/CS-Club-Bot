@@ -4,18 +4,42 @@ const { PERPLEXITY_API_KEY } = require("../config");
 const { ERROR_RESPONSES } = require("../constants/errorResponses");
 const createOptions = require("../utils/createOptions");
 
-async function sendToPerplexity(input, photoUrls) {
+const { buildPublicPhotoUrls } = require("./telegramToCdn");
+
+async function sendToPerplexity(input, photoFileIds = [], telegramClient) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 90000);
 
     try {
-        console.log("photoUrls>>", photoUrls);
+        let publicPhotoUrls = [];
+
+        if (
+            telegramClient &&
+            Array.isArray(photoFileIds) &&
+            photoFileIds.length
+        ) {
+            try {
+                publicPhotoUrls =
+                    (await buildPublicPhotoUrls(
+                        telegramClient,
+                        photoFileIds
+                    )) || [];
+            } catch (uploadErr) {
+                console.error(
+                    "❌ Failed to prepare public photo URLs:",
+                    uploadErr && uploadErr.stack ? uploadErr.stack : uploadErr
+                );
+                publicPhotoUrls = [];
+            }
+        }
+
+        console.log("📸 Public photo URLs:", publicPhotoUrls);
 
         const options = {
             ...createOptions.createOptions(
                 PERPLEXITY_API_KEY,
                 input,
-                photoUrls
+                publicPhotoUrls
             ),
             signal: controller.signal,
         };

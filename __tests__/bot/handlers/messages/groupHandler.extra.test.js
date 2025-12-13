@@ -59,7 +59,11 @@ describe("groupHandler additional edge branches", () => {
 
         // formatGroupMessageChunks should have been used (called)
         expect(mockFormatChunks).toHaveBeenCalled();
-        expect(sendToPerplexity).toHaveBeenCalledWith("hi", []);
+        expect(sendToPerplexity).toHaveBeenCalledWith(
+            "hi",
+            [],
+            expect.anything()
+        );
     });
 
     test("media_group setTimeout catch logs error when processMessage throws", async () => {

@@ -18,6 +18,10 @@ const config = {
     NOTION_API_KEY: process.env.NOTION_API_KEY,
     NOTION_DATABASE_ID: process.env.NOTION_DATABASE_ID,
     ADMIN_CHAT_ID: process.env.ADMIN_CHAT_ID,
+    CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
+    CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
+    CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
+    CLOUDINARY_FOLDER: process.env.CLOUDINARY_FOLDER,
 };
 
 // Validate required vars in production; in non-production warn but don't throw so tests and dev flows work
@@ -53,6 +57,22 @@ const requiredChecks = [
     {
         key: "ADMIN_CHAT_ID",
         msg: "ERR>> ADMIN_CHAT_ID is not set in the environment variables.",
+    },
+    {
+        key: "CLOUDINARY_CLOUD_NAME",
+        msg: "ERR>> CLOUDINARY_CLOUD_NAME is not set in the environment variables.",
+    },
+    {
+        key: "CLOUDINARY_API_KEY",
+        msg: "ERR>> CLOUDINARY_API_KEY is not set in the environment variables.",
+    },
+    {
+        key: "CLOUDINARY_API_SECRET",
+        msg: "ERR>> CLOUDINARY_API_SECRET is not set in the environment variables.",
+    },
+    {
+        key: "CLOUDINARY_FOLDER",
+        msg: "ERR>> CLOUDINARY_FOLDER is not set in the environment variables.",
     },
 ];
 

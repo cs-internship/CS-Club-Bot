@@ -63,10 +63,14 @@ beforeEach(() => {
 test("process simple text message -> sends to perplexity and edits message with formatted result", async () => {
     const message = { text: "hello", entities: [], message_id: 123 };
     const _ctx = await runHandler(message);
-    expect(sendToPerplexity).toHaveBeenCalledWith("hello", []);
+    expect(sendToPerplexity).toHaveBeenCalledWith(
+        "hello",
+        [],
+        expect.anything()
+    );
 });
 
-test("photo message gets file and included in photoUrls", async () => {
+test("photo message collects file_id for CDN upload", async () => {
     const message = {
         photo: [{ file_id: "f1" }, { file_id: "f2" }],
         caption: "with photo",
@@ -74,9 +78,11 @@ test("photo message gets file and included in photoUrls", async () => {
         message_id: 124,
     };
     const _ctx = await runHandler(message);
-    expect(sendToPerplexity).toHaveBeenCalledWith("with photo", [
-        "https://api.telegram.org/file/botTOKEN/path.jpg",
-    ]);
+    expect(sendToPerplexity).toHaveBeenCalledWith(
+        "with photo",
+        ["f2"],
+        expect.anything()
+    );
 });
 
 test("exact bot command reaction for non-admin user triggers reaction", async () => {
@@ -406,7 +412,7 @@ test("exact-command reaction callApi throws but does not call perplexity", async
     expect(sendToPerplexity).not.toHaveBeenCalled();
 });
 
-test("photo getFile throws and processing continues without photoUrls", async () => {
+test("photo continues to propagate file_id even if getFile would throw", async () => {
     jest.resetModules();
     jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
         groupMessageValidator: jest.fn().mockResolvedValue(true),
@@ -460,7 +466,11 @@ test("photo getFile throws and processing continues without photoUrls", async ()
     const groupHandler = require("../../../../bot/handlers/messages/groupHandler");
     groupHandler(bot);
     await new Promise((r) => setImmediate(r));
-    expect(sendToPerplexity).toHaveBeenCalledWith("cap", []);
+    expect(sendToPerplexity).toHaveBeenCalledWith(
+        "cap",
+        ["f1"],
+        expect.anything()
+    );
 });
 
 test("media_group processing logs error when processing throws inside timeout", async () => {
