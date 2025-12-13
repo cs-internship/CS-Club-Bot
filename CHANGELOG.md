@@ -1,3 +1,10 @@
+## [2.8.1](https://github.com/cs-internship/CS-Club-Bot/compare/v2.8.0...v2.8.1) (2025-12-13)
+
+
+### Bug Fixes
+
+* temporarily disable image sending to Perplexity and clean up commented code ([8daf185](https://github.com/cs-internship/CS-Club-Bot/commit/8daf185acacc701cccc03e1939c6061bac52d273))
+
 # [2.8.0](https://github.com/cs-internship/CS-Club-Bot/compare/v2.7.0...v2.8.0) (2025-12-13)
 
 
