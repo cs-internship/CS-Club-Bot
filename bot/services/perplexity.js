@@ -9,14 +9,20 @@ async function sendToPerplexity(input, photoUrls) {
     const timeout = setTimeout(() => controller.abort(), 90000);
 
     try {
-        console.log("photoUrls>>", photoUrls);
+        // console.log("photoUrls>>", photoUrls);
 
+        // const options = {
+        //     ...createOptions.createOptions(
+        //         PERPLEXITY_API_KEY,
+        //         input,
+        //         photoUrls
+        //     ),
+        //     signal: controller.signal,
+        // };
+
+        // Temporarily disable image sending to Perplexity until we can figure out why it's causing issues
         const options = {
-            ...createOptions.createOptions(
-                PERPLEXITY_API_KEY,
-                input,
-                photoUrls
-            ),
+            ...createOptions.createOptions(PERPLEXITY_API_KEY, input, []),
             signal: controller.signal,
         };
 
