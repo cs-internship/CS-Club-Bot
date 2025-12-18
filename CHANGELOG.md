@@ -1,3 +1,10 @@
+## [2.8.2](https://github.com/cs-internship/CS-Club-Bot/compare/v2.8.1...v2.8.2) (2025-12-18)
+
+
+### Bug Fixes
+
+* reduce max_tokens from 2000 to 1800 for shorter answers that hopefully could fit in one telegram message ([33de3a6](https://github.com/cs-internship/CS-Club-Bot/commit/33de3a6a06d7b5266d16b142b31dc183a5916d20))
+
 ## [2.8.1](https://github.com/cs-internship/CS-Club-Bot/compare/v2.8.0...v2.8.1) (2025-12-13)
 
 
