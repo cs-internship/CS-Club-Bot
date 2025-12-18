@@ -40,7 +40,7 @@ const createOptions = (apiKeyPPLX, newMessage, imageUrls = []) => {
             top_k: 0,
             presence_penalty: 0,
             frequency_penalty: 1,
-            max_tokens: 2000,
+            max_tokens: 1800, // From 2000
             stream: false,
             return_citations: true,
             return_images: false,
