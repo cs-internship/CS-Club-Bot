@@ -1,3 +1,10 @@
+# [2.9.0](https://github.com/cs-internship/CS-Club-Bot/compare/v2.8.2...v2.9.0) (2025-12-20)
+
+
+### Features
+
+* add explanation link to formatGroupMessage and related tests; implement smart chunking for message formatting ([b65d703](https://github.com/cs-internship/CS-Club-Bot/commit/b65d70311d8796748d86749ae4b28b55f81a2390))
+
 ## [2.8.2](https://github.com/cs-internship/CS-Club-Bot/compare/v2.8.1...v2.8.2) (2025-12-18)
 
 
