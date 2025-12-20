@@ -5,6 +5,7 @@ const {
 } = require("../../config");
 const { ERROR_RESPONSES } = require("../../constants/errorResponses");
 const { sendToPerplexity } = require("../../services/perplexity");
+const { convertENtoFA } = require("../../utils/convertENtoFA");
 const { escapeHtml } = require("../../utils/escapeHtml");
 const {
     formatGroupMessage,
@@ -137,12 +138,13 @@ module.exports = (bot) => {
                     { reply_to_message_id: message.message_id }
                 );
 
-                const response = await sendToPerplexity(text, photoUrls);
-                // let response = "test";
-                // const response = "<b>test</b> 📊" + "w".repeat(5000);
+                const rawResponse = await sendToPerplexity(text, photoUrls);
+                // let rawResponse = "test";
+                // const rawResponse = "<b>test</b> 📊" + "w".repeat(500);
 
-                // console.log("Perplexity response >>", response);
+                // console.log("Perplexity rawResponse >>", rawResponse);
 
+                const response = convertENtoFA(rawResponse);
                 const errorEntry = Object.values(ERROR_RESPONSES).find(
                     (entry) =>
                         entry.code === response ||
@@ -178,7 +180,7 @@ module.exports = (bot) => {
                         await ctx.telegram.sendMessage(chatId, chunks[i], {
                             parse_mode: "HTML",
                             disable_web_page_preview: true,
-                            reply_to_message_id: message.message_id,
+                            reply_to_message_id: processingMessage.message_id,
                         });
                     }
                 }

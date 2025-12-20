@@ -1,48 +1,51 @@
-const { escapeHtml } = require("../../../bot/utils/escapeHtml");
 const {
     formatGroupMessageChunks,
 } = require("../../../bot/utils/formatGroupMessage");
-const { safeChunkText } = require("../../../bot/utils/safeChunkText");
+
+const explanationLink =
+    "\n\nتوضیح نحوه ساخت پیام:\n\nhttps://t.me/cs_internship/729";
 
 describe("formatGroupMessageChunks", () => {
-    test("when no chart uses safeChunkText on escaped full message", () => {
+    test("when no chart splits by lines and escapes", () => {
         const resp = "hello & world";
         const limit = 50;
-        const explanationLink =
-            "\n\nتوضیح نحوه ساخت پیام:\n\nhttps://t.me/cs_internship/729";
-        const expected = safeChunkText(
-            escapeHtml(resp + explanationLink),
-            limit
-        );
+
+        const expected = [
+            `hello &amp; world\n\nتوضیح نحوه ساخت پیام:\n\n`,
+            "https://t.me/cs_internship/729",
+        ];
+
         expect(formatGroupMessageChunks(resp, limit)).toEqual(expected);
     });
 
-    test("when chart and prefix too large (available1 <=0) returns first slice and then hidden chunks", () => {
+    test("when chart prefix is larger than limit it chunks the intro separately", () => {
         const first = "A".repeat(100);
         const second = "hidden content";
         const limit = 50;
-        const chunks = formatGroupMessageChunks(`${first}📊${second}`, limit);
 
-        // first chunk should be truncated slice of escaped first part
-        expect(chunks[0]).toBe(escapeHtml(first).slice(0, limit));
+        const expected = [
+            "A".repeat(50),
+            "A".repeat(50),
+            `\n\n📊 <b>برای دیدن ادامه کلیک کنید:</b>\n<blockquote expandable></blockquote>`,
+        ];
 
-        // there should be at least one chunk that contains the blockquote wrapper
-        expect(chunks.find((c) => c.includes("<blockquote"))).toBeTruthy();
+        expect(formatGroupMessageChunks(`${first}📊${second}`, limit)).toEqual(
+            expected
+        );
     });
 
-    test("when chart splits hidden content across multiple chunks", () => {
-        const first = "Intro";
-        const second = "X".repeat(500);
-        const limit = 100;
-        const chunks = formatGroupMessageChunks(`${first}📊${second}`, limit);
+    test("splits long hidden content across multiple blockquote chunks", () => {
+        const resp = `Intro📊one\ntwo\nthree\nfour\nfive`;
+        const limit = 120;
 
-        // first chunk contains the "برای دیدن ادامه" header and the blockquote
-        expect(chunks[0]).toContain("برای دیدن ادامه");
-        expect(chunks[0]).toContain("<blockquote");
+        const chunks = formatGroupMessageChunks(resp, limit);
 
-        // all additional chunks (if present) should also contain a blockquote
-        expect(chunks.slice(1).every((c) => c.includes("<blockquote"))).toBe(
-            true
-        );
+        expect(chunks).toEqual([
+            `Intro\n\n📊 <b>برای دیدن ادامه کلیک کنید:</b>\n<blockquote expandable>one\ntwo\nthree\nfour\nfive\n\n</blockquote>`,
+            `\n\n📊 <b>ادامه:</b>\n<blockquote expandable>توضیح نحوه ساخت پیام:\n\n</blockquote>`,
+            `\n\n📊 <b>ادامه:</b>\n<blockquote expandable>https://t.me/cs_internship/729</blockquote>`,
+        ]);
+
+        expect(chunks.every((c) => c.includes("<blockquote"))).toBe(true);
     });
 });
