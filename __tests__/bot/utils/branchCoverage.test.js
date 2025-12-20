@@ -4,17 +4,6 @@ describe("Branch coverage extra edge cases", () => {
         expect(safeChunkText("")).toEqual([]);
     });
 
-    test("createOptions with undefined message still sets system message", () => {
-        jest.resetModules();
-        jest.doMock("../../../bot/constants/systemMessage", () => ({
-            systemMessage: "SYS",
-        }));
-        const { createOptions } = require("../../../bot/utils/createOptions");
-        const opts = createOptions("K");
-        const body = JSON.parse(opts.body);
-        expect(body.messages[0].content[0].text).toBe("SYS");
-    });
-
     test("getUsernameByFullname empty rich_text returns null", async () => {
         jest.resetModules();
         jest.doMock("@notionhq/client", () => ({

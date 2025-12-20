@@ -1,3 +1,5 @@
+const fetch = require("node-fetch");
+
 const {
     ALLOWED_GROUPS,
     ADMIN_USERNAME,
@@ -40,13 +42,29 @@ module.exports = (bot) => {
 
         if (message.photo) {
             const largePhoto = message.photo[message.photo.length - 1];
+
             try {
                 const file = await ctx.telegram.getFile(largePhoto.file_id);
                 const fileUrl = `https://api.telegram.org/file/bot${TELEGRAM_BOT_TOKEN}/${file.file_path}`;
-                photoUrls.push(fileUrl);
+
+                const res = await fetch(fileUrl);
+                if (!res.ok) {
+                    throw new Error("Failed to download image from Telegram");
+                }
+
+                const buffer = await res.buffer();
+
+                let mime = "image/jpeg";
+                if (file.file_path.endsWith(".png")) mime = "image/png";
+                else if (file.file_path.endsWith(".webp")) mime = "image/webp";
+
+                const base64 = buffer.toString("base64");
+                const dataUri = `data:${mime};base64,${base64}`;
+
+                photoUrls.push(dataUri);
             } catch (err) {
                 console.error(
-                    "❌ Error getting file:",
+                    "❌ Error getting or converting image:",
                     err && err.stack ? err.stack : err
                 );
             }
@@ -140,11 +158,12 @@ module.exports = (bot) => {
 
                 const rawResponse = await sendToPerplexity(text, photoUrls);
                 // let rawResponse = "test";
-                // const rawResponse = "<b>test</b> 📊" + "w".repeat(500);
+                // const rawResponse = "<b>test</b> 📊" + "w".repeat(50);
 
                 // console.log("Perplexity rawResponse >>", rawResponse);
 
                 const response = convertENtoFA(rawResponse);
+
                 const errorEntry = Object.values(ERROR_RESPONSES).find(
                     (entry) =>
                         entry.code === response ||

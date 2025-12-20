@@ -1,5 +1,15 @@
 jest.resetModules();
 
+const mockFetchSuccess = () =>
+    jest.doMock("node-fetch", () =>
+        jest.fn(async () => ({
+            ok: true,
+            buffer: async () => Buffer.from("imgdata"),
+        }))
+    );
+
+mockFetchSuccess();
+
 describe("groupHandler additional edge branches", () => {
     test("buildChunks uses formatGroupMessageChunks when available", async () => {
         jest.resetModules();
@@ -33,7 +43,6 @@ describe("groupHandler additional edge branches", () => {
         } = require("../../../../bot/services/perplexity");
         const groupHandler = require("../../../../bot/handlers/messages/groupHandler");
 
-        let editedText = null;
         const ctx = {
             message: { text: "hi", entities: [], message_id: 1 },
             chat: { id: 1, type: "group" },
@@ -41,7 +50,8 @@ describe("groupHandler additional edge branches", () => {
             telegram: {
                 sendMessage: async () => ({ message_id: 10 }),
                 editMessageText: async (c, mid, u, text) => {
-                    editedText = text;
+                    // eslint-disable-next-line no-unused-vars
+                    const editedText = text;
                 },
                 callApi: async () => {},
                 getFile: async () => ({ file_path: "p" }),
@@ -64,6 +74,7 @@ describe("groupHandler additional edge branches", () => {
 
     test("media_group setTimeout catch logs error when processMessage throws", async () => {
         jest.resetModules();
+        mockFetchSuccess();
 
         const consoleSpy = jest
             .spyOn(console, "error")
