@@ -92,7 +92,9 @@ module.exports = (bot) => {
             if (groupData.timeout) clearTimeout(groupData.timeout);
 
             groupData.timeout = setTimeout(async () => {
-                if (groupData.isProcessing) return;
+                if (groupData.isProcessing) {
+                    return;
+                }
                 groupData.isProcessing = true;
 
                 try {
@@ -184,6 +186,8 @@ module.exports = (bot) => {
                 } else {
                     const chunks = buildChunks(response, 4000);
 
+                    console.log("Response Chunks 1 >>", chunks);
+
                     await ctx.telegram.editMessageText(
                         chatId,
                         processingMessage.message_id,
@@ -235,17 +239,19 @@ const processMessage = async (
     ctx
 ) => {
     if (await groupMessageValidator(chatType, chatId, text, ctx)) {
-        const processingMessage = await telegramClient.sendMessage(
-            chatId,
-            "🕒 در حال پردازش...",
-            {
-                reply_to_message_id: replyToMessageId,
-            }
-        );
-
         try {
-            const response = await sendToPerplexity(text, photoUrls);
+            const processingMessage = await telegramClient.sendMessage(
+                chatId,
+                "🕒 در حال پردازش...",
+                {
+                    reply_to_message_id: replyToMessageId,
+                }
+            );
+
+            const rawResponse = await sendToPerplexity(text, photoUrls);
             // let response = "test";
+
+            const response = convertENtoFA(rawResponse);
 
             const errorEntry = Object.values(ERROR_RESPONSES).find(
                 (entry) =>
@@ -264,27 +270,28 @@ const processMessage = async (
                     }
                 );
                 return;
-            }
+            } else {
+                const chunks = buildChunks(response, 4000);
 
-            const finalMessage = formatGroupMessage(response);
-            const chunks = safeChunkText(finalMessage, 4000);
+                console.log("Response Chunks 2 >>", chunks);
 
-            await telegramClient.editMessageText(
-                chatId,
-                processingMessage.message_id,
-                undefined,
-                chunks[0],
-                {
-                    parse_mode: "HTML",
-                    disable_web_page_preview: true,
+                await telegramClient.editMessageText(
+                    chatId,
+                    processingMessage.message_id,
+                    undefined,
+                    chunks[0],
+                    {
+                        parse_mode: "HTML",
+                        disable_web_page_preview: true,
+                    }
+                );
+                for (let i = 1; i < chunks.length; i++) {
+                    await telegramClient.sendMessage(chatId, chunks[i], {
+                        parse_mode: "HTML",
+                        disable_web_page_preview: true,
+                        reply_to_message_id: replyToMessageId,
+                    });
                 }
-            );
-            for (let i = 1; i < chunks.length; i++) {
-                await telegramClient.sendMessage(chatId, chunks[i], {
-                    parse_mode: "HTML",
-                    disable_web_page_preview: true,
-                    reply_to_message_id: replyToMessageId,
-                });
             }
         } catch (error) {
             console.error(
