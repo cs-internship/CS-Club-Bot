@@ -1,5 +1,15 @@
 jest.resetModules();
 
+const mockFetchSuccess = () =>
+    jest.doMock("node-fetch", () =>
+        jest.fn(async () => ({
+            ok: true,
+            buffer: async () => Buffer.from("imgdata"),
+        }))
+    );
+
+mockFetchSuccess();
+
 // Mock deps
 jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
     groupMessageValidator: jest.fn().mockResolvedValue(true),
@@ -75,7 +85,7 @@ test("photo message gets file and included in photoUrls", async () => {
     };
     const _ctx = await runHandler(message);
     expect(sendToPerplexity).toHaveBeenCalledWith("with photo", [
-        "https://api.telegram.org/file/botTOKEN/path.jpg",
+        "data:image/jpeg;base64,aW1nZGF0YQ==",
     ]);
 });
 
@@ -197,6 +207,7 @@ test("error response from sendToPerplexity triggers editMessageText with error e
     };
     // re-require module to use overwritten sendToPerplexity
     jest.resetModules();
+    mockFetchSuccess();
     jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
         groupMessageValidator: jest.fn().mockResolvedValue(true),
     }));
@@ -224,6 +235,7 @@ test("error response from sendToPerplexity triggers editMessageText with error e
 test("processing error triggers fallback reply and fallback sendMessage in processMessage", async () => {
     // simulate sendToPerplexity throwing inside processMessage to hit fallback sendMessage
     jest.resetModules();
+    mockFetchSuccess();
     jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
         groupMessageValidator: jest.fn().mockResolvedValue(true),
     }));
@@ -278,6 +290,7 @@ test("processing error triggers fallback reply and fallback sendMessage in proce
 
 test("splits long response into multiple chunks and sends subsequent messages", async () => {
     jest.resetModules();
+    mockFetchSuccess();
     jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
         groupMessageValidator: jest.fn().mockResolvedValue(true),
     }));
@@ -364,6 +377,7 @@ test("private chat returns next() immediately", async () => {
 
 test("exact-command reaction callApi throws but does not call perplexity", async () => {
     jest.resetModules();
+    mockFetchSuccess();
     jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
         groupMessageValidator: jest.fn().mockResolvedValue(true),
     }));
@@ -408,6 +422,7 @@ test("exact-command reaction callApi throws but does not call perplexity", async
 
 test("photo getFile throws and processing continues without photoUrls", async () => {
     jest.resetModules();
+    mockFetchSuccess();
     jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
         groupMessageValidator: jest.fn().mockResolvedValue(true),
     }));
@@ -465,6 +480,7 @@ test("photo getFile throws and processing continues without photoUrls", async ()
 
 test("media_group processing logs error when processing throws inside timeout", async () => {
     jest.resetModules();
+    mockFetchSuccess();
     jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
         groupMessageValidator: jest.fn().mockResolvedValue(true),
     }));
@@ -540,6 +556,7 @@ test("media_group processing logs error when processing throws inside timeout", 
 
 test("processMessage handles errorEntry for media_group by editing message with error text", async () => {
     jest.resetModules();
+    mockFetchSuccess();
     jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
         groupMessageValidator: jest.fn().mockResolvedValue(true),
     }));
@@ -619,6 +636,7 @@ test("processMessage handles errorEntry for media_group by editing message with 
 
 test("processMessage splits long response into chunks for media_group and sends subsequent messages", async () => {
     jest.resetModules();
+    mockFetchSuccess();
     jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
         groupMessageValidator: jest.fn().mockResolvedValue(true),
     }));
@@ -699,6 +717,7 @@ test("processMessage splits long response into chunks for media_group and sends 
 
 test("top-level handler fallback reply when sendToPerplexity throws", async () => {
     jest.resetModules();
+    mockFetchSuccess();
     jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
         groupMessageValidator: jest.fn().mockResolvedValue(true),
     }));
@@ -753,6 +772,7 @@ test("top-level handler fallback reply when sendToPerplexity throws", async () =
 
 test("top-level nested fallback logs error when ctx.reply also throws", async () => {
     jest.resetModules();
+    mockFetchSuccess();
     jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
         groupMessageValidator: jest.fn().mockResolvedValue(true),
     }));
@@ -811,6 +831,7 @@ test("top-level nested fallback logs error when ctx.reply also throws", async ()
 
 test("processMessage nested fallback logs error when fallback sendMessage throws", async () => {
     jest.resetModules();
+    mockFetchSuccess();
     jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
         groupMessageValidator: jest.fn().mockResolvedValue(true),
     }));
@@ -892,6 +913,7 @@ test("processMessage nested fallback logs error when fallback sendMessage throws
 
 test("direct call to _processMessage edits message when errorEntry returned", async () => {
     jest.resetModules();
+    mockFetchSuccess();
     jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
         groupMessageValidator: jest.fn().mockResolvedValue(true),
     }));
@@ -925,6 +947,7 @@ test("direct call to _processMessage edits message when errorEntry returned", as
 
 test("direct call to _processMessage logs error when fallback sendMessage throws", async () => {
     jest.resetModules();
+    mockFetchSuccess();
     jest.doMock("../../../../bot/utils/groupMessageValidator", () => ({
         groupMessageValidator: jest.fn().mockResolvedValue(true),
     }));

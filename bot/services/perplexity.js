@@ -4,6 +4,7 @@ const { PERPLEXITY_API_KEY } = require("../config");
 const { ERROR_RESPONSES } = require("../constants/errorResponses");
 const createOptions = require("../utils/createOptions");
 
+// eslint-disable-next-line no-unused-vars
 async function sendToPerplexity(input, photoUrls) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 90000);
@@ -11,20 +12,20 @@ async function sendToPerplexity(input, photoUrls) {
     try {
         // console.log("photoUrls>>", photoUrls);
 
-        // const options = {
-        //     ...createOptions.createOptions(
-        //         PERPLEXITY_API_KEY,
-        //         input,
-        //         photoUrls
-        //     ),
-        //     signal: controller.signal,
-        // };
-
-        // Temporarily disable image sending to Perplexity until we can figure out why it's causing issues
         const options = {
-            ...createOptions.createOptions(PERPLEXITY_API_KEY, input, []),
+            ...createOptions.createOptions(
+                PERPLEXITY_API_KEY,
+                input,
+                photoUrls
+            ),
             signal: controller.signal,
         };
+
+        // Temporarily disable image sending to Perplexity until we can figure out why it's causing issues
+        // const options = {
+        //     ...createOptions.createOptions(PERPLEXITY_API_KEY, input, []),
+        //     signal: controller.signal,
+        // };
 
         const res = await fetch(
             "https://api.perplexity.ai/chat/completions",

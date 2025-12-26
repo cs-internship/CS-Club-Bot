@@ -1,3 +1,5 @@
+const fetch = require("node-fetch");
+
 const {
     ALLOWED_GROUPS,
     ADMIN_USERNAME,
@@ -40,13 +42,29 @@ module.exports = (bot) => {
 
         if (message.photo) {
             const largePhoto = message.photo[message.photo.length - 1];
+
             try {
                 const file = await ctx.telegram.getFile(largePhoto.file_id);
                 const fileUrl = `https://api.telegram.org/file/bot${TELEGRAM_BOT_TOKEN}/${file.file_path}`;
-                photoUrls.push(fileUrl);
+
+                const res = await fetch(fileUrl);
+                if (!res.ok) {
+                    throw new Error("Failed to download image from Telegram");
+                }
+
+                const buffer = await res.buffer();
+
+                let mime = "image/jpeg";
+                if (file.file_path.endsWith(".png")) mime = "image/png";
+                else if (file.file_path.endsWith(".webp")) mime = "image/webp";
+
+                const base64 = buffer.toString("base64");
+                const dataUri = `data:${mime};base64,${base64}`;
+
+                photoUrls.push(dataUri);
             } catch (err) {
                 console.error(
-                    "❌ Error getting file:",
+                    "❌ Error getting or converting image:",
                     err && err.stack ? err.stack : err
                 );
             }
@@ -74,7 +92,9 @@ module.exports = (bot) => {
             if (groupData.timeout) clearTimeout(groupData.timeout);
 
             groupData.timeout = setTimeout(async () => {
-                if (groupData.isProcessing) return;
+                if (groupData.isProcessing) {
+                    return;
+                }
                 groupData.isProcessing = true;
 
                 try {
@@ -130,75 +150,19 @@ module.exports = (bot) => {
             }
         }
 
-        if (await groupMessageValidator(chatType, chatId, text, ctx)) {
-            try {
-                const processingMessage = await ctx.telegram.sendMessage(
-                    chatId,
-                    "🕒 در حال پردازش...",
-                    { reply_to_message_id: message.message_id }
-                );
-
-                const rawResponse = await sendToPerplexity(text, photoUrls);
-                // let rawResponse = "test";
-                // const rawResponse = "<b>test</b> 📊" + "w".repeat(500);
-
-                // console.log("Perplexity rawResponse >>", rawResponse);
-
-                const response = convertENtoFA(rawResponse);
-                const errorEntry = Object.values(ERROR_RESPONSES).find(
-                    (entry) =>
-                        entry.code === response ||
-                        entry.code === String(response)
-                );
-
-                if (errorEntry) {
-                    await ctx.telegram.editMessageText(
-                        chatId,
-                        processingMessage.message_id,
-                        undefined,
-                        escapeHtml(errorEntry.message),
-                        {
-                            parse_mode: "HTML",
-                            disable_web_page_preview: true,
-                        }
-                    );
-                } else {
-                    const chunks = buildChunks(response, 4000);
-
-                    await ctx.telegram.editMessageText(
-                        chatId,
-                        processingMessage.message_id,
-                        undefined,
-                        chunks[0],
-                        {
-                            parse_mode: "HTML",
-                            disable_web_page_preview: true,
-                        }
-                    );
-
-                    for (let i = 1; i < chunks.length; i++) {
-                        await ctx.telegram.sendMessage(chatId, chunks[i], {
-                            parse_mode: "HTML",
-                            disable_web_page_preview: true,
-                            reply_to_message_id: processingMessage.message_id,
-                        });
-                    }
-                }
-            } catch (error) {
-                console.error(
-                    "❌ Error processing message:",
-                    error && error.stack ? error.stack : error
-                );
-                try {
-                    await ctx.reply("❌ مشکلی پیش اومد.");
-                } catch (e) {
-                    console.error(
-                        "❌ Error sending fallback reply:",
-                        e && e.stack ? e.stack : e
-                    );
-                }
+        await processMessage(
+            ctx.telegram,
+            text,
+            photoUrls,
+            chatId,
+            message.message_id,
+            chatType,
+            ctx,
+            {
+                replyChunksTo: "processing",
+                fallbackReplyMode: "ctx",
             }
-        }
+        );
 
         if (chatType === "private") {
             await next();
@@ -213,20 +177,27 @@ const processMessage = async (
     chatId,
     replyToMessageId,
     chatType,
-    ctx
+    ctx,
+    options = {}
 ) => {
-    if (await groupMessageValidator(chatType, chatId, text, ctx)) {
-        const processingMessage = await telegramClient.sendMessage(
-            chatId,
-            "🕒 در حال پردازش...",
-            {
-                reply_to_message_id: replyToMessageId,
-            }
-        );
+    const { replyChunksTo = "original", fallbackReplyMode = "telegram" } =
+        options;
 
+    if (await groupMessageValidator(chatType, chatId, text, ctx)) {
         try {
-            const response = await sendToPerplexity(text, photoUrls);
-            // let response = "test";
+            const processingMessage = await telegramClient.sendMessage(
+                chatId,
+                "🕒 در حال پردازش...",
+                {
+                    reply_to_message_id: replyToMessageId,
+                }
+            );
+
+            const rawResponse = await sendToPerplexity(text, photoUrls);
+            // let rawResponse = "test";
+            // const rawResponse = "<b>test</b> 📊" + "w".repeat(50);
+
+            const response = convertENtoFA(rawResponse);
 
             const errorEntry = Object.values(ERROR_RESPONSES).find(
                 (entry) =>
@@ -247,8 +218,9 @@ const processMessage = async (
                 return;
             }
 
-            const finalMessage = formatGroupMessage(response);
-            const chunks = safeChunkText(finalMessage, 4000);
+            const chunks = buildChunks(response, 4000);
+
+            console.log("Response Chunks >>", chunks);
 
             await telegramClient.editMessageText(
                 chatId,
@@ -260,11 +232,17 @@ const processMessage = async (
                     disable_web_page_preview: true,
                 }
             );
+
+            const replyToForExtraChunks =
+                replyChunksTo === "processing"
+                    ? processingMessage.message_id
+                    : replyToMessageId;
+
             for (let i = 1; i < chunks.length; i++) {
                 await telegramClient.sendMessage(chatId, chunks[i], {
                     parse_mode: "HTML",
                     disable_web_page_preview: true,
-                    reply_to_message_id: replyToMessageId,
+                    reply_to_message_id: replyToForExtraChunks,
                 });
             }
         } catch (error) {
@@ -272,10 +250,19 @@ const processMessage = async (
                 "❌ Error processing message:",
                 error && error.stack ? error.stack : error
             );
+
             try {
-                await telegramClient.sendMessage(chatId, "❌ مشکلی پیش اومد.", {
-                    reply_to_message_id: replyToMessageId,
-                });
+                if (fallbackReplyMode === "ctx" && ctx?.reply) {
+                    await ctx.reply("❌ مشکلی پیش اومد.");
+                } else {
+                    await telegramClient.sendMessage(
+                        chatId,
+                        "❌ مشکلی پیش اومد.",
+                        {
+                            reply_to_message_id: replyToMessageId,
+                        }
+                    );
+                }
             } catch (e) {
                 console.error(
                     "❌ Error sending fallback reply:",
