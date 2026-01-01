@@ -2,9 +2,6 @@ const {
     formatGroupMessageChunks,
 } = require("../../../bot/utils/formatGroupMessage");
 
-const explanationLink =
-    "\n\nتوضیح نحوه ساخت پیام:\n\nhttps://t.me/cs_internship/729";
-
 describe("formatGroupMessageChunks", () => {
     test("when no chart splits by lines and escapes", () => {
         const resp = "hello & world";

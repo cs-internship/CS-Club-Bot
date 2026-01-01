@@ -16,7 +16,7 @@ const createMessage = (newMessage, imageUrls = []) => {
     return [
         {
             role: "system",
-            content: [{ type: "text", text: systemMessage }],
+            content: systemMessage,
         },
         {
             role: "user",
@@ -31,6 +31,7 @@ const createOptions = (apiKeyPPLX, newMessage, imageUrls = []) => {
         headers: {
             Authorization: `Bearer ${apiKeyPPLX}`,
             "Content-Type": "application/json",
+            Accept: "application/json",
         },
         body: JSON.stringify({
             model: "sonar-pro",
