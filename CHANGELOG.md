@@ -1,3 +1,13 @@
+# [2.10.0](https://github.com/cs-internship/CS-Club-Bot/compare/v2.9.0...v2.10.0) (2026-01-01)
+
+
+### Features
+
+* implement base64 image conversion and update related tests; remove unused options creation test ([95cb338](https://github.com/cs-internship/CS-Club-Bot/commit/95cb3387d6246d56a76176eabc3eb5439e9a82d3))
+* implement formatErrorForClubs utility for structured error reporting ([d3deb9f](https://github.com/cs-internship/CS-Club-Bot/commit/d3deb9f38edda56a4b59d892a687210338a5e2fc))
+* improve message processing flow; add logging for response chunks and refactor processing message handling ([2ec86c5](https://github.com/cs-internship/CS-Club-Bot/commit/2ec86c5a6beb6e22399df8db014dff4b0c398a21))
+* refactor message processing to use processMessage function; enhance error handling and chunk reply logic ([cf8c423](https://github.com/cs-internship/CS-Club-Bot/commit/cf8c42346d4f159f3797cf261d11e098da891e8e))
+
 # [2.9.0](https://github.com/cs-internship/CS-Club-Bot/compare/v2.8.2...v2.9.0) (2025-12-20)
 
 
