@@ -1,6 +1,7 @@
 const { ALLOWED_GROUPS, ADMIN_CHAT_ID } = require("../config");
 
 const groupMessageValidator = async (chatType, chatId, text, ctx) => {
+    return false;
     if (chatType === "private") {
         return false;
     }
